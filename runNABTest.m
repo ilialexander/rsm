@@ -68,7 +68,7 @@ for i=startFile:endFile
     
     %% Create Model
     if createModelFlag
-        mainAU  (fileNames{i}, name, displayFlag, true, 'none');
+        main (fileNames{i}, name, displayFlag, true, 'none');
     end
     
     %% Read saved run data --

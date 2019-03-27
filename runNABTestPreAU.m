@@ -1,3 +1,4 @@
+time = datetime;
 startFile = 1;
 endFile = 2;
 displayFlag = false;
@@ -182,3 +183,4 @@ fprintf (1, '\n Our Raw Scores + Our Anomaly Likelihood: %4.3f (Bootstrap estima
 % for j=1:length(i)
 %     fprintf(1, '\n%s', fileNames{i(j)});
 % end
+fprintf ('\nProcessing Time is: %s\n',diff([time datetime]));

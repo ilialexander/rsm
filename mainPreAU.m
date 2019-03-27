@@ -56,9 +56,11 @@ if learnFlag
         % train the spatialPooler
         xSM = spatialPooler (x, true, false);
         if iteration > 2
-            AU.colLocation = find(ismember(AU.uniquePatterns(:,1:size(xSMPrevious,2)),xSMPrevious,'row'),2);
+            AU.colLocation = find(ismember(AU.uniquePatterns(:,1:size(xSMPrevious,2)),xSMPrevious,'row'),1);
             if any(AU.colLocation)
-                rowLocation = find(ismember(xSM,AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),'row'),1);
+                rowLocation = find(ismember(AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),xSM,'row'),1);
+                location = rowLocation;
+                binaryarray = ismember(AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),xSM,'row');
                 if any(rowLocation)
                     AU.Counts{1,AU.colLocation}(rowLocation) = AU.Counts{1,AU.colLocation}(rowLocation) + 1;
                 else
@@ -128,7 +130,8 @@ fprintf('\n Running input of length %d through sequence memory to detect anomaly
 
 time = datetime;
 iteration = 1;
-x = [];
+% x = [];
+SM.input = [];
 automatization = 0;
 
 
@@ -138,27 +141,28 @@ automatization = 0;
 %AU.inputHistory{1,AU.colLocation} = [AU.inputHistory{1,AU.colLocation}; xSMPrevious xSM];
 
 
-
-
 while iteration < (data.N + 1)
     AU.tolerance = 0;
     %% Run through Spatial Pooler (SP)(without learning)    
-    %x = [];
-    if ~any(x)
+    if ~any(SM.input)
+        subtime = datetime;
+        x = [];
         for  i=1:length(data.fields)
             j = data.fields(i);
             x = [x data.code{j}(data.value{j}(iteration),:)];
         end
-    end
-    SM.input = spatialPooler (x, false, displayFlag);
-    
-    data.inputCodes = [data.inputCodes; x]; 
-    data.inputSDR = [data.inputSDR; SM.input];
-    
-    % stores sequence of input to spatial pooler. This is used to
-    % visualize the predicted vectors 
+        
+        SM.input = spatialPooler (x, false, displayFlag);
 
-    AU.locPattern = find(ismember(AU.uniquePatterns(:,1:(size(SM.input,2))),SM.input,'row'),2);
+        data.inputCodes = [data.inputCodes; x]; 
+        data.inputSDR = [data.inputSDR; SM.input];
+
+        % stores sequence of input to spatial pooler. This is used to
+        % visualize the predicted vectors 
+    end
+
+
+    AU.locPattern = find(ismember(AU.uniquePatterns(:,1:(size(SM.input,2))),SM.input,'row'),1);
     %fprintf ("\nAU.locPattern = %d]",AU.locPattern);
     if any(AU.locPattern)
         %% Compute anomaly score 
@@ -182,11 +186,14 @@ while iteration < (data.N + 1)
 
         if AU.anomalyScore == AU.tolerance
             anomalyScores (iteration+1) = AU.anomalyScore;
-            automatization = automatization + 1;
-            fprintf ("\nAutomatization Access: %d",automatization);
-            iteration = iteration + 2;
-            x = [];
-            SM.inputPrevious = SM.input;
+%            automatization = automatization + 1;
+%            fprintf ("\nAutomatization Access: %d",automatization);
+            iteration = iteration + 1;
+            SM.input = [];
+
+%             iteration = iteration + 2;
+%             x = [];
+%             SM.inputPrevious = SM.input;
         else
             predictedInput = logical(sum(SM.cellPredicted));
 
@@ -201,7 +208,8 @@ while iteration < (data.N + 1)
             SM.inputPrevious = SM.input;
             SM.cellActivePrevious = SM.cellActive;
             SM.cellLearnPrevious = SM.cellLearn;
-            x = [];
+            SM.input = [];
+            %x = [];
 
             iteration = iteration + 1;
         end
@@ -221,7 +229,8 @@ while iteration < (data.N + 1)
         SM.inputPrevious = SM.input;
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearnPrevious = SM.cellLearn;
-        x = [];
+        SM.input = [];
+        %x = [];
 
         iteration = iteration + 1;
     end
