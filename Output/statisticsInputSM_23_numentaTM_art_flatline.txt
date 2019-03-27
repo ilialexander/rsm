@@ -1,0 +1,3 @@
+Dataset Size: 4032                          
+Initial Event        Percentage of A->X        Frequency of A       Frequency of A->X
+0.000000             100.000000                4031.000000          4031.000000    
