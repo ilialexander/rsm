@@ -59,8 +59,6 @@ if learnFlag
             AU.colLocation = find(ismember(AU.uniquePatterns(:,1:size(xSMPrevious,2)),xSMPrevious,'row'),1);
             if any(AU.colLocation)
                 rowLocation = find(ismember(AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),xSM,'row'),1);
-                location = rowLocation;
-                binaryarray = ismember(AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),xSM,'row');
                 if any(rowLocation)
                     AU.Counts{1,AU.colLocation}(rowLocation) = AU.Counts{1,AU.colLocation}(rowLocation) + 1;
                 else
