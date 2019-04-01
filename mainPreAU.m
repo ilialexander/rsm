@@ -69,11 +69,13 @@ if learnFlag
                AU.inputHistory{1,size(AU.inputHistory,2)+1} = [xSMPrevious xSM];
                AU.Counts{1,size(AU.Counts,2)+1} = 1;
                AU.uniquePatterns = [AU.uniquePatterns; xSMPrevious xSM];
+               AU.uniqueCounts{1} = [AU.uniqueCounts; 1];
             end
         elseif iteration == 2
             AU.inputHistory{1} = [xSMPrevious xSM];
             AU.Counts{1} = 1;
             AU.uniquePatterns = [xSMPrevious xSM];
+            AU.uniqueCounts{1} = 1;
         else
 
         end
@@ -180,10 +182,12 @@ while iteration < (data.N + 1)
         data.inputCodes = [data.inputCodes; x]; 
         data.inputSDR = [data.inputSDR; SM.input];
 
-        AU.anomalyScore = 1 - nnz(AU.uniquePatterns(AU.locPattern,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) & SM.input)/nnz(SM.input);
-
-        if AU.anomalyScore == AU.tolerance
-            anomalyScores (iteration+1) = AU.anomalyScore;
+        %AU.anomalyScore = 1 - nnz(AU.uniquePatterns(AU.locPattern,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) & SM.input)/nnz(SM.input);
+        
+        
+        %if AU.anomalyScore == AU.tolerance
+        if AU.uniquePatterns(AU.locPattern,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.input
+            anomalyScores (iteration+1) = 0;
 %            automatization = automatization + 1;
 %            fprintf ("\nAutomatization Access: %d",automatization);
             iteration = iteration + 1;
@@ -193,6 +197,8 @@ while iteration < (data.N + 1)
 %             x = [];
 %             SM.inputPrevious = SM.input;
         else
+            AU.inputHistory{1,AU.locPattern} = [AU.inputHistory{1,AU.locPattern}; xSMPrevious xSM];
+            AU.Counts{1,AU.locPattern} = [AU.Counts{1,AU.locPattern}; 1];
             predictedInput = logical(sum(SM.cellPredicted));
 
             anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
@@ -212,7 +218,9 @@ while iteration < (data.N + 1)
             iteration = iteration + 1;
         end
     else
-        %fprintf('AU.predictedInput es el conjunto vacio');
+        AU.inputHistory{1,size(AU.inputHistory,2)+1} = [xSMPrevious xSM];
+        AU.Counts{1,size(AU.Counts,2)+1} = 1;
+        AU.uniquePatterns = [AU.uniquePatterns; xSMPrevious xSM];
 
         predictedInput = logical(sum(SM.cellPredicted));
 
