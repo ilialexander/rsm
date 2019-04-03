@@ -1,0 +1,2 @@
+To Do List for AU and possible improvements
+1. Improve 'ismember' function to search only for the first occurrence. (other functions may benefit as well)

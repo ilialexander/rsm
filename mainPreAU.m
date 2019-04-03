@@ -56,9 +56,9 @@ if learnFlag
         % train the spatialPooler
         xSM = spatialPooler (x, true, false);
         if iteration > 2
-            AU.colLocation = find(ismember(AU.uniquePatterns(:,1:size(xSMPrevious,2)),xSMPrevious,'row'),1);
+            [~,AU.colLocation] = ismember(xSMPrevious,AU.uniquePatterns(:,1:size(xSMPrevious,2)),'row');
             if any(AU.colLocation)
-                AU.rowLocation = find(ismember(AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),xSM,'row'),1);
+                [~,AU.rowLocation] = ismember(xSM,AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),'row');
                 if any(AU.rowLocation)
                     AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
                 else
@@ -163,7 +163,7 @@ while iteration < (data.N + 1)
     end
 
 
-    AU.colLocation = find(ismember(AU.uniquePatterns(:,1:(size(SM.input,2))),SM.input,'row'),1);
+    [~,AU.colLocation] = ismember(SM.input,AU.uniquePatterns(:,1:(size(SM.input,2))),'row');
     %fprintf ("\nAU.colLocation = %d]",AU.colLocation);
     if any(AU.colLocation)
         %% Compute anomaly score 
@@ -195,7 +195,7 @@ while iteration < (data.N + 1)
             SM.input = SM.inputNext;
 
         else
-            AU.rowLocation = find(ismember(AU.inputHistory{1,AU.colLocation}(:,(size(SM.input,2)+1):size(AU.uniquePatterns,2)),SM.input,'row'),1);
+            [~,AU.rowLocation] = ismember(SM.input,AU.inputHistory{1,AU.colLocation}(:,(size(SM.input,2)+1):size(AU.uniquePatterns,2)),'row');
             if any(AU.rowLocation)
                 AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
             else
