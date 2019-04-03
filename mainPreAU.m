@@ -58,9 +58,9 @@ if learnFlag
         if iteration > 2
             AU.colLocation = find(ismember(AU.uniquePatterns(:,1:size(xSMPrevious,2)),xSMPrevious,'row'),1);
             if any(AU.colLocation)
-                rowLocation = find(ismember(AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),xSM,'row'),1);
-                if any(rowLocation)
-                    AU.Counts{1,AU.colLocation}(rowLocation) = AU.Counts{1,AU.colLocation}(rowLocation) + 1;
+                AU.rowLocation = find(ismember(AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),xSM,'row'),1);
+                if any(AU.rowLocation)
+                    AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
                 else
                     AU.inputHistory{1,AU.colLocation} = [AU.inputHistory{1,AU.colLocation}; xSMPrevious xSM];
                     AU.Counts{1,AU.colLocation} = [AU.Counts{1,AU.colLocation}; 1];
@@ -69,13 +69,13 @@ if learnFlag
                AU.inputHistory{1,size(AU.inputHistory,2)+1} = [xSMPrevious xSM];
                AU.Counts{1,size(AU.Counts,2)+1} = 1;
                AU.uniquePatterns = [AU.uniquePatterns; xSMPrevious xSM];
-               AU.uniqueCounts{1} = [AU.uniqueCounts; 1];
+               AU.uniqueCounts = [AU.uniqueCounts; 1];
             end
         elseif iteration == 2
             AU.inputHistory{1} = [xSMPrevious xSM];
             AU.Counts{1} = 1;
             AU.uniquePatterns = [xSMPrevious xSM];
-            AU.uniqueCounts{1} = 1;
+            AU.uniqueCounts = 1;
         else
 
         end
@@ -115,7 +115,7 @@ end
 
 %% Setup arrays
 predictions = zeros(3, data.N); % initialize array allocaton -- faster on matlab
-SM.inputPrevious = zeros(SM.N, 1);
+SM.inputPrevious = zeros(1,SM.N);
 data.inputCodes = [];
 data.inputSDR = [];
 SP.boost = ones (SM.N, 1); 
@@ -132,6 +132,7 @@ time = datetime;
 iteration = 1;
 % x = [];
 SM.input = [];
+SM.inputNext = [];
 automatization = 0;
 
 
@@ -162,9 +163,9 @@ while iteration < (data.N + 1)
     end
 
 
-    AU.locPattern = find(ismember(AU.uniquePatterns(:,1:(size(SM.input,2))),SM.input,'row'),1);
-    %fprintf ("\nAU.locPattern = %d]",AU.locPattern);
-    if any(AU.locPattern)
+    AU.colLocation = find(ismember(AU.uniquePatterns(:,1:(size(SM.input,2))),SM.input,'row'),1);
+    %fprintf ("\nAU.colLocation = %d]",AU.colLocation);
+    if any(AU.colLocation)
         %% Compute anomaly score 
         % based on what was predicted as the next expected sequence memory
         % module input at last time instant. (Note: we did experiment with
@@ -177,28 +178,30 @@ while iteration < (data.N + 1)
             j = data.fields(i);
             x = [x data.code{j}(data.value{j}(iteration+1),:)];
         end
-        SM.input = spatialPooler (x, false, displayFlag);
+        SM.inputNext = spatialPooler (x, false, displayFlag);
 
         data.inputCodes = [data.inputCodes; x]; 
-        data.inputSDR = [data.inputSDR; SM.input];
+        data.inputSDR = [data.inputSDR; SM.inputNext];
 
-        %AU.anomalyScore = 1 - nnz(AU.uniquePatterns(AU.locPattern,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) & SM.input)/nnz(SM.input);
+        %AU.anomalyScore = 1 - nnz(AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) & SM.input)/nnz(SM.input);
         
         
         %if AU.anomalyScore == AU.tolerance
-        if AU.uniquePatterns(AU.locPattern,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.input
+        if AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.inputNext
             anomalyScores (iteration+1) = 0;
-%            automatization = automatization + 1;
-%            fprintf ("\nAutomatization Access: %d",automatization);
+            automatization = automatization + 1;
             iteration = iteration + 1;
-            SM.input = [];
+            SM.inputPrevious = SM.input;
+            SM.input = SM.inputNext;
 
-%             iteration = iteration + 2;
-%             x = [];
-%             SM.inputPrevious = SM.input;
         else
-            AU.inputHistory{1,AU.locPattern} = [AU.inputHistory{1,AU.locPattern}; xSMPrevious xSM];
-            AU.Counts{1,AU.locPattern} = [AU.Counts{1,AU.locPattern}; 1];
+            AU.rowLocation = find(ismember(AU.inputHistory{1,AU.colLocation}(:,(size(SM.input,2)+1):size(AU.uniquePatterns,2)),SM.input,'row'),1);
+            if any(AU.rowLocation)
+                AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
+            else
+                AU.inputHistory{1,AU.colLocation} = [AU.inputHistory{1,AU.colLocation}; SM.input SM.inputNext];
+                AU.Counts{1,AU.colLocation} = [AU.Counts{1,AU.colLocation}; 1];
+            end
             predictedInput = logical(sum(SM.cellPredicted));
 
             anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
@@ -210,9 +213,10 @@ while iteration < (data.N + 1)
 
             %%
             SM.inputPrevious = SM.input;
+            SM.input = SM.inputNext;
             SM.cellActivePrevious = SM.cellActive;
             SM.cellLearnPrevious = SM.cellLearn;
-            SM.input = [];
+            %SM.input = [];
             %x = [];
 
             iteration = iteration + 1;
@@ -221,6 +225,7 @@ while iteration < (data.N + 1)
         AU.inputHistory{1,size(AU.inputHistory,2)+1} = [xSMPrevious xSM];
         AU.Counts{1,size(AU.Counts,2)+1} = 1;
         AU.uniquePatterns = [AU.uniquePatterns; xSMPrevious xSM];
+        AU.uniqueCounts = [AU.uniqueCounts; 1];
 
         predictedInput = logical(sum(SM.cellPredicted));
 
@@ -282,6 +287,7 @@ while iteration < (data.N + 1)
     
 end
 fprintf ('\nProcessing Time is: %s\n',diff([time datetime]));
+fprintf ("\nAutomatization Access: %d",automatization);
 fprintf('\n Running input of length %d through sequence memory to detect anomaly...done', data.N);
 
 % Uncomment this if you want to visualize Temporal Pooler output
