@@ -163,7 +163,7 @@ while iteration < (data.N + 1)
 
     [~,AU.colLocation] = ismember(SM.input,AU.uniquePatterns(:,1:(size(SM.input,2))),'row');
     %fprintf ("\nAU.colLocation = %d]",AU.colLocation);
-    if any(AU.colLocation) && (iteration<data.N)
+    if any(AU.colLocation) && (iteration<1243)
         %% Compute anomaly score 
         % based on what was predicted as the next expected sequence memory
         % module input at last time instant. (Note: we did experiment with
