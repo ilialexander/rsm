@@ -180,19 +180,27 @@ while iteration < (data.N + 1)
 
         %AU.anomalyScore = 1 - nnz(AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) & SM.input)/nnz(SM.input);
         
+        % check if value exist in inputHistory
+        [~,AU.rowLocation] = ismember(SM.inputNext,AU.inputHistory{1,AU.colLocation}(:,(size(SM.inputNext,2)+1):size(AU.uniquePatterns,2)),'row');
+        %fprintf("\n AU.rowLocation = %d\n",AU.rowLocation);
+        
         % Compare AU prediction with next input
         if AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.inputNext
             anomalyScores (iteration+1) = 0;
+            % Increase count of <key, value> pair
+            AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
+            % Update uniqueCounts for that key
+            AU.uniqueCounts(AU.colLocation) = AU.uniqueCounts(AU.colLocation) + 1;
             SM.inputPrevious = SM.input;
             SM.input = SM.inputNext;
             SM.inputNext = [];
-            %[ToDo: We need to increment the counts for <key, value> pair]
             automatization = automatization + 1; % Increment AU access
             iteration = iteration + 1;
         else
             %% Compute anomaly score 
             % based on what was predicted as the next expected sequence memory
             % module input at last time instant.
+            %[ToDo: This may override the prediction made by AU in the 'Previous' iteration]
             predictedInput = logical(sum(SM.cellPredicted));
 
             anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
@@ -201,9 +209,6 @@ while iteration < (data.N + 1)
             % cells in SM and also the predictions for the next time instant.
             sequenceMemory (learnFlag);
 
-
-            % check if value exist in inputHistory
-            [~,AU.rowLocation] = ismember(SM.inputNext,AU.inputHistory{1,AU.colLocation}(:,(size(SM.input,2)+1):size(AU.uniquePatterns,2)),'row');
             if any(AU.rowLocation)
                 % Increase count of <key, value> pair
                 AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
@@ -230,6 +235,7 @@ while iteration < (data.N + 1)
         %% Compute anomaly score 
         % based on what was predicted as the next expected sequence memory
         % module input at last time instant.
+        %[ToDo: This may override the prediction made by AU in the 'Previous' iteration]
         predictedInput = logical(sum(SM.cellPredicted));
 
         anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
@@ -239,7 +245,7 @@ while iteration < (data.N + 1)
         sequenceMemory (learnFlag);
 
         % Create a new cell in AU.inputHistory and initialize the Counts
-        AU.inputHistory{1,size(AU.inputHistory,2)+1} = [xSMPrevious xSM];
+        AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
         AU.Counts{1,size(AU.Counts,2)+1} = 1;
         % Create a new entry in AU.uniquePatterns and initialize uniqueCounts
         AU.uniquePatterns = [AU.uniquePatterns; SM.inputPrevious SM.input];
