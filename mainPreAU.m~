@@ -167,7 +167,7 @@ while iteration < (data.N + 1)
 
     % Check for the key
     [~,AU.colLocation] = ismember(SM.input,AU.uniquePatterns(:,1:(size(SM.input,2))),'row');
-    if any(AU.colLocation) && (iteration<data.N)
+    if any(AU.colLocation) && (iteration<data.N) && (iteration>trN)
         %AU.anomalyScore = 0;
         %% Get the next input to validate AU prediction.
         x = [];
@@ -187,8 +187,12 @@ while iteration < (data.N + 1)
         
         % Compare AU prediction with next input
         if AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.inputNext
-            predictedInput = logical(sum(SM.cellPredicted));
-            anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
+            if anomalyScores (iteration) == 0
+                % Prevents overriding the score calculated in the AU
+            else
+                predictedInput = logical(sum(SM.cellPredicted));
+                anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
+            end
             anomalyScores (iteration+1) = 0;
             % Increase count of <key, value> pair
             AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
@@ -250,7 +254,8 @@ while iteration < (data.N + 1)
         %% Run the input through Sequence Memory (SM) module to compute the active
         % cells in SM and also the predictions for the next time instant.
         sequenceMemory (learnFlag);
-
+        
+        % [ToDo: Should not receive entries from Trn data]
         % Create a new cell in AU.inputHistory and initialize the Counts
         AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
         AU.Counts{1,size(AU.Counts,2)+1} = 1;

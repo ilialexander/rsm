@@ -167,7 +167,7 @@ while iteration < (data.N + 1)
 
     % Check for the key
     [~,AU.colLocation] = ismember(SM.input,AU.uniquePatterns(:,1:(size(SM.input,2))),'row');
-    if any(AU.colLocation) && (iteration<data.N)
+    if any(AU.colLocation) && (iteration<data.N) && (iteration>trN)
         %AU.anomalyScore = 0;
         %% Get the next input to validate AU prediction.
         x = [];
@@ -255,12 +255,15 @@ while iteration < (data.N + 1)
         % cells in SM and also the predictions for the next time instant.
         sequenceMemory (learnFlag);
         
-        % Create a new cell in AU.inputHistory and initialize the Counts
-        AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
-        AU.Counts{1,size(AU.Counts,2)+1} = 1;
-        % Create a new entry in AU.uniquePatterns and initialize uniqueCounts
-        AU.uniquePatterns = [AU.uniquePatterns; SM.inputPrevious SM.input];
-        AU.uniqueCounts = [AU.uniqueCounts; 1];
+        % Skips training data
+        if iteration > trN
+            % Create a new cell in AU.inputHistory and initialize the Counts
+            AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
+            AU.Counts{1,size(AU.Counts,2)+1} = 1;
+            % Create a new entry in AU.uniquePatterns and initialize uniqueCounts
+            AU.uniquePatterns = [AU.uniquePatterns; SM.inputPrevious SM.input];
+            AU.uniqueCounts = [AU.uniqueCounts; 1];
+        end
 
         SM.inputPrevious = SM.input;
         SM.cellActivePrevious = SM.cellActive;
