@@ -144,6 +144,7 @@ time = datetime;   % Used to calculate the execution time.
 iteration = 1;
 SM.input = [];
 SM.inputNext = [];
+anomalyScores = ones(1,data.N);
 automatization = 0; % Counts the times AU is accessed.
 
 while iteration < (data.N + 1)
@@ -186,6 +187,12 @@ while iteration < (data.N + 1)
         
         % Compare AU prediction with next input
         if AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.inputNext
+            if anomalyScores (iteration) == 0
+                % Prevents overriding the score calculated in the AU
+            else
+                predictedInput = logical(sum(SM.cellPredicted));
+                anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
+            end
             anomalyScores (iteration+1) = 0;
             % Increase count of <key, value> pair
             AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
@@ -200,10 +207,12 @@ while iteration < (data.N + 1)
             %% Compute anomaly score 
             % based on what was predicted as the next expected sequence memory
             % module input at last time instant.
-            %[ToDo: This may override the prediction made by AU in the 'Previous' iteration]
-            predictedInput = logical(sum(SM.cellPredicted));
-
-            anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
+            if anomalyScores (iteration) == 0
+                % Prevents overriding the score calculated in the AU
+            else
+                predictedInput = logical(sum(SM.cellPredicted));
+                anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
+            end
 
             %% Run the input through Sequence Memory (SM) module to compute the active
             % cells in SM and also the predictions for the next time instant.
@@ -235,15 +244,17 @@ while iteration < (data.N + 1)
         %% Compute anomaly score 
         % based on what was predicted as the next expected sequence memory
         % module input at last time instant.
-        %[ToDo: This may override the prediction made by AU in the 'Previous' iteration]
-        predictedInput = logical(sum(SM.cellPredicted));
-
-        anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-
+        if anomalyScores (iteration) == 0
+            % Prevents overriding the score calculated in the AU
+        else
+            predictedInput = logical(sum(SM.cellPredicted));
+            anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
+        end
+        
         %% Run the input through Sequence Memory (SM) module to compute the active
         % cells in SM and also the predictions for the next time instant.
         sequenceMemory (learnFlag);
-
+        
         % Create a new cell in AU.inputHistory and initialize the Counts
         AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
         AU.Counts{1,size(AU.Counts,2)+1} = 1;
