@@ -51,6 +51,7 @@ if learnFlag
     iteration = 1;
     
     while iteration < trN
+        % [ToDo: Move this to a function called 'SPOutput']
         x = []; % construct the binary vector x for each measurement from the data fields
         for  i=1:length(data.fields)
             j = data.fields(i);
@@ -150,6 +151,7 @@ automatization = 0; % Counts the times AU is accessed.
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
     if ~any(SM.input)
+        % [ToDo: Will be processed through 'SPOutput']
         x = [];
         for  i=1:length(data.fields)
             j = data.fields(i);
@@ -170,6 +172,7 @@ while iteration < (data.N + 1)
     if any(AU.colLocation) && (iteration<data.N) && (iteration>trN)
         %AU.anomalyScore = 0;
         %% Get the next input to validate AU prediction.
+        % [ToDo: Will be processed through 'SPOutput']
         x = [];
         for  i=1:length(data.fields)
             j = data.fields(i);

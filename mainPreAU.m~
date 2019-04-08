@@ -51,6 +51,7 @@ if learnFlag
     iteration = 1;
     
     while iteration < trN
+        % [ToDo]
         x = []; % construct the binary vector x for each measurement from the data fields
         for  i=1:length(data.fields)
             j = data.fields(i);
@@ -255,13 +256,15 @@ while iteration < (data.N + 1)
         % cells in SM and also the predictions for the next time instant.
         sequenceMemory (learnFlag);
         
-        % [ToDo: Should not receive entries from Trn data]
-        % Create a new cell in AU.inputHistory and initialize the Counts
-        AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
-        AU.Counts{1,size(AU.Counts,2)+1} = 1;
-        % Create a new entry in AU.uniquePatterns and initialize uniqueCounts
-        AU.uniquePatterns = [AU.uniquePatterns; SM.inputPrevious SM.input];
-        AU.uniqueCounts = [AU.uniqueCounts; 1];
+        % Skips training data
+        if iteration > trN
+            % Create a new cell in AU.inputHistory and initialize the Counts
+            AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
+            AU.Counts{1,size(AU.Counts,2)+1} = 1;
+            % Create a new entry in AU.uniquePatterns and initialize uniqueCounts
+            AU.uniquePatterns = [AU.uniquePatterns; SM.inputPrevious SM.input];
+            AU.uniqueCounts = [AU.uniqueCounts; 1];
+        end
 
         SM.inputPrevious = SM.input;
         SM.cellActivePrevious = SM.cellActive;
