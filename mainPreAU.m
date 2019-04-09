@@ -196,6 +196,13 @@ while iteration < (data.N + 1)
                 predictedInput = logical(sum(SM.cellPredicted));
                 anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
             end
+%% %%%%%%%% [ToDo: Strengthen permanences between SM.inputPrevious (synapses) and SM.input (neurons)]
+%             markActiveStates (); % based on x and PI_1 (prediction from past cycle)
+% 
+%             if learnFlag
+%                markLearnStates ();
+%                updateSynapses ();
+%             end
             anomalyScores (iteration+1) = 0;
             % Increase count of <key, value> pair
             AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
@@ -204,6 +211,17 @@ while iteration < (data.N + 1)
             SM.inputPrevious = SM.input;
             SM.input = SM.inputNext;
             SM.inputNext = [];
+%% %%%%%%%% [ToDo: Strengthen permanences between SM.input (synapses) and SM.inputNext (neurons)]
+%             markActiveStates (); % based on x and PI_1 (prediction from past cycle)
+% 
+%             if learnFlag
+%                markLearnStates ();
+%                updateSynapses ();
+%             end
+%% %%%%%%%% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
+%             % Predict next state
+%             SM.cellPredictedPrevious = SM.cellPredicted;   
+%             markPredictiveStates ();
             automatization = automatization + 1; % Increment AU access
             iteration = iteration + 1;
         else
