@@ -59,7 +59,7 @@ SM.predictedActive (:) = 0;
 % indices are indexed by the predicted cells and we can have more than one predicted cell in any
 % column or row. So, any particular column index can occur multiple times in the vector.
 
-selectColumns = (ismember (columnPredicted, columnInput)); % note: this is a logical array
+selectColumns = (ismember(columnPredicted, columnInput)); % note: this is a logical array
 
 % selects the predicted row and column of the correctly predicted cells based on the "logical"
 % array passed
@@ -70,7 +70,7 @@ correctColumns = columnPredicted(selectColumns);
 % compute the linear index from the above row and column indices and set the active and learning
 % tags for these cells.
 % tag of 1 - means that the dendrites of the cell will be reinforced.
-% QUESTION: --” All connected dendrites reinforced? NEED TO CHECK THIS. no
+% QUESTION: --? All connected dendrites reinforced? NEED TO CHECK THIS. no
 
 correctCells = sub2ind(size(SM.cellActive), correctRows, correctColumns);
 SM.cellActive (correctCells) = 1;

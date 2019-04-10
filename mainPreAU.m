@@ -189,7 +189,8 @@ while iteration < (data.N + 1)
         %fprintf("\n AU.rowLocation = %d\n",AU.rowLocation);
         
         % Compare AU prediction with next input
-        if AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.inputNext
+        AU.access = (AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.inputNext);
+        if AU.access
             if anomalyScores (iteration) == 0
                 % Prevents overriding the score calculated in the AU
             else
@@ -222,6 +223,7 @@ while iteration < (data.N + 1)
 %             % Predict next state
 %             SM.cellPredictedPrevious = SM.cellPredicted;   
 %             markPredictiveStates ();
+            AU.access = 0;
             automatization = automatization + 1; % Increment AU access
             iteration = iteration + 1;
         else

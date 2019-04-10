@@ -34,24 +34,14 @@ activeCols = find(SM.input);
 %% Mark the correctly predicted active cells with dendrites that are also
 % predictive based on on learning states.
 [xL, ~, ~] = find(SM.dendriteLearn); % active learning dendrites
-fprintf("SM.dendriteToCell(xL) dimensions are:");
-fprintf("[\n");
-fprintf("%dx",size(SM.dendriteToCell(xL)));
+fprintf("\n[");
+fprintf("SM.dendriteLearn dimensions are: %d",size(xL));
 fprintf("]\n");
-fprintf("\nSM.dendriteToCell(xL) contains:");
-fprintf("[\n");
-fprintf(" %d",full(SM.dendriteToCell(xL)));
+fprintf("\n[SM.dendriteLearn contains:");
+fprintf(" %d",full(xL));
 fprintf("]\n");
+
 uL = unique(SM.dendriteToCell(xL)); % marks cells with active learning dendrites
-fprintf("uL dimensions are:");
-fprintf("[\n");
-fprintf("%dx",size(uL));
-fprintf("]\n");
-fprintf("\nuL contains:");
-fprintf("[\n");
-fprintf(" %d",full(uL));
-fprintf("]\n");
-fprintf("SM.totalDendrites: %d\n",SM.totalDendrites);
 if ~isempty(SM.predictedActive)
     lc_cols = find(SM.predictedActive (uL));
     [R, C] = ind2sub ([SM.M, SM.N], lc_cols);

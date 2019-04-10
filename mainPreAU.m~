@@ -189,6 +189,7 @@ while iteration < (data.N + 1)
         %fprintf("\n AU.rowLocation = %d\n",AU.rowLocation);
         
         % Compare AU prediction with next input
+        AU.access = (AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.inputNext);
         if AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.inputNext
             if anomalyScores (iteration) == 0
                 % Prevents overriding the score calculated in the AU
@@ -197,7 +198,12 @@ while iteration < (data.N + 1)
                 anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
             end
 %% %%%%%%%% [ToDo: Strengthen permanences between SM.inputPrevious (synapses) and SM.input (neurons)]
-            %% [ToDo: Strengthen permanences between SM.input (synapses) and SM.inputNext (neurons)]
+%             markActiveStates (); % based on x and PI_1 (prediction from past cycle)
+% 
+%             if learnFlag
+%                markLearnStates ();
+%                updateSynapses ();
+%             end
             anomalyScores (iteration+1) = 0;
             % Increase count of <key, value> pair
             AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
@@ -206,9 +212,19 @@ while iteration < (data.N + 1)
             SM.inputPrevious = SM.input;
             SM.input = SM.inputNext;
             SM.inputNext = [];
+%% %%%%%%%% [ToDo: Strengthen permanences between SM.input (synapses) and SM.inputNext (neurons)]
+%             markActiveStates (); % based on x and PI_1 (prediction from past cycle)
+% 
+%             if learnFlag
+%                markLearnStates ();
+%                updateSynapses ();
+%             end
+%% %%%%%%%% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
+%             % Predict next state
+%             SM.cellPredictedPrevious = SM.cellPredicted;   
+%             markPredictiveStates ();
             automatization = automatization + 1; % Increment AU access
             iteration = iteration + 1;
-            %% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
         else
             %% Compute anomaly score 
             % based on what was predicted as the next expected sequence memory
