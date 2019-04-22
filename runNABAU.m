@@ -1,4 +1,5 @@
 function runNABAU (startFile, endFile, displayFlag, createModelFlag)
+time = datetime;
 % This function through the entore NAB dataset
 %
 % Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA
@@ -179,3 +180,4 @@ fprintf (1, '\n Our Raw Scores + Our Anomaly Likelihood: %4.3f (Bootstrap estima
 % for j=1:length(i)
 %     fprintf(1, '\n%s', fileNames{i(j)});
 % end
+fprintf ('\nProcessing Time is: %s\n',diff([time datetime]));

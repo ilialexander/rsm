@@ -6,7 +6,7 @@ function markPredictiveStates ()
 %
 % This function computes the indices of the cells in predicted state and stores it in the sparse array 
 % SM.cellPredicted. In the process of computing this, it stores the count of active synapses for the dendrites 
-% feeding from the currently  active cells. It keeps two kinds of counts — count of active synapses in 
+% feeding from the currently  active cells. It keeps two kinds of counts ??? count of active synapses in 
 % SM.dendriteActive and count of positive synapses in SM.dendritePositive.
 % We also compute the list of dendrites that are active based on learnStates in SM.dendriteLearn
 
@@ -22,7 +22,7 @@ global  SM;
 %% Initialize the active and Positive synapse and dendrite to NULL sets
 %
 % Note --- the underlying synapse/dendrite/cell pointer-based data structure is oriented in the following way
-% Cell body affecting (input) <-- synapse --> dendrites�--> cell body affected (output)
+% Cell body affecting (input) <-- synapse --> dendrites???--> cell body affected (output)
 
 SM.SynapseActive = []; %(:) = 0; % synapses that have permanences above a threshold
 SM.SynapsePositive = []; %(:) = 0; % synapses that have positive permanences 
@@ -105,9 +105,5 @@ SM.cellPredicted (:)= 0;
 [x, ~, ~] = find(SM.dendriteActive); % active dendrites
 u = unique(SM.dendriteToCell(x));
 SM.cellPredicted (u) = true;
-
-
-
-
 
 

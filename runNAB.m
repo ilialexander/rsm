@@ -1,8 +1,8 @@
-%function runNAB (startFile, endFile, displayFlag, createModelFlag)
-startFile = 1;
-endFile = 2;
-displayFlag = false;
-createModelFlag = true;
+function runNAB (startFile, endFile, displayFlag, createModelFlag)
+% startFile = 1;
+% endFile = 2;
+% displayFlag = false;
+% createModelFlag = true;
 % This function through the entore NAB dataset
 %
 % Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA

@@ -40,7 +40,7 @@ global  SM SP TP data AU
     SM.Nss = 30; %Maximum number of synapses per dendritic segment
 
     SM.Theta = 20; %Dendritic segment activation threshold
-    SM.minPositiveThreshold = 10;
+    SM.minPositiveThreshold = 10; %% Minimum dendritic segment activation threshold?
     SM.P_initial = 0.24; %Initial synaptic permanence
     SM.P_thresh = 0.5; %Connection threshold for synaptic permanence
     SM.P_incr = 0.04; %Synaptic permanence increment

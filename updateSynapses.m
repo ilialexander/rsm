@@ -27,7 +27,7 @@ global SM;
 % create a list of synapse-dendrite pairs
 [~, ~, dendriteID] = find(SM.synapseToDendrite);
 % create a list of synapse-preCell pairs
-[synapse, ~, preCell] = find(SM.synapseToCell);
+[synapse, ~, ~] = find(SM.synapseToCell);
 
 %% Step 1: Find active dendrites connected to active cells to reinforce
 % Note SM.DendriteActive already has dendrites with at least Theta number of synapses
