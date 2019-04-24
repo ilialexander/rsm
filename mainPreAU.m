@@ -89,7 +89,7 @@ if learnFlag
             AU.inputHistory{1} = [xSMPrevious xSM];
             AU.uniquePatterns = [xSMPrevious xSM];
             AU.Counts{1} = 1;
-            AU.uniqueCounts = [1];
+            AU.uniqueCounts = 1;
         else
             % Do nothing
         end
@@ -147,6 +147,7 @@ SM.input = [];
 SM.inputNext = [];
 anomalyScores = ones(1,data.N);
 automatization = 0; % Counts the times AU is accessed.
+AU.access_previous = 0;
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
@@ -217,17 +218,26 @@ while iteration < (data.N + 1)
             SM.input = SM.inputNext;
             SM.inputNext = [];
 %% %%%%%%%% [ToDo: Strengthen permanences between SM.input (synapses) and SM.inputNext (neurons)]
-%             markActiveStates (); % based on x and PI_1 (prediction from past cycle)
-% 
-%             if learnFlag
-%                markLearnStates ();
-%                updateSynapses ();
-%             end
+			%% Ensures learning of i -> i+1 in HTM when AU is accessed
+			% i+1 constitutes to SM.inputNext
+            SM.cellActivePrevious = SM.cellActive;
+            SM.cellLearn(:) = 0;
+            SM.cellLearn(:,SM.input) = 1;
+            [dendrites, ~, cellID] = find(SM.dendriteToCell); % note: same cellID might be repeated
+            reinforceDendrites = (SM.cellLearn(cellID) == 1);
+            [~, ~, dendriteID] = find(SM.synapseToDendrite);
+            [synapse, ~, ~] = find(SM.synapseToCell);
+            reinforceSynapses = ismember(dendriteID, dendrites(reinforceDendrites));
+            strengthenSynapses = synapse(reinforceSynapses & (SM.synapsePermanence(synapse) < 1));
+            SM.synapsePermanence(strengthenSynapses) = SM.synapsePermanence(strengthenSynapses) + SM.P_incr;
 %% %%%%%%%% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
 %             % Predict next state
 %             SM.cellPredictedPrevious = SM.cellPredicted;   
 %             markPredictiveStates ();
+            SM.cellActivePrevious = SM.synapseToCell(strengthenSynapses);
+            SM.cellLearnPrevious = SM.synapseToCell(strengthenSynapses);
             AU.access = 0;
+            AU.access_previous = 0; % flag to ensure propper HTM-AU Sync
             automatization = automatization + 1; % Increment AU access
             iteration = iteration + 1;
         else
