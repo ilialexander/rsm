@@ -198,12 +198,16 @@ while iteration < (data.N + 1)
                 anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
             end
 %% %%%%%%%% [ToDo: Strengthen permanences between SM.inputPrevious (synapses) and SM.input (neurons)]
-%             markActiveStates (); % based on x and PI_1 (prediction from past cycle)
-% 
-%             if learnFlag
-%                markLearnStates ();
-%                updateSynapses ();
-%             end
+            %if AU.access_previous == 1 % will check if the previous
+            %iteration was through AU or HTM for proper HTM learning
+%             markActiveStates (); % based on x and PI_1 (prediction from
+            %% Ensures learning of i-1 -> i in HTM when AU is accessed
+            markActiveStates (); % based on x and PI_1 (prediction from past cycle)
+            
+            if learnFlag
+               markLearnStates ();
+               updateSynapses ();
+            end
             anomalyScores (iteration+1) = 0;
             % Increase count of <key, value> pair
             AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
