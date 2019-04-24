@@ -13,6 +13,7 @@ sCells = find(SM.cellLearnPrevious); % pointers to previously learned cells
 if ~isempty(sCells)
     for i=1:nDCells
         dC = dCells(i);
+		%% [ToDo: no need to add dentries, as event should have already been recoreded before]e
         if (expandDendrites (i) < 0) % add new dendrite
             if (SM.numDendritesPerCell(dC) < SM.Nd)
                 
@@ -29,7 +30,7 @@ if ~isempty(sCells)
         % synapse with
         
         nNew = min(SM.Nss, length(sCells));
-        if ((SM.numSynpasesPerDendrite (expandDendrites (i)) + nNew) < SM.Ns) % Ensures that synapses will fit
+        if ((SM.numSynpasesPerDendrite (expandDendrites (i)) + nNew) < SM.Ns) % add new Synpases
             SM.numSynpasesPerDendrite (expandDendrites (i)) = SM.numSynpasesPerDendrite (expandDendrites (i)) + nNew;
             
             rp = randperm (length(sCells)); % random permutation vector

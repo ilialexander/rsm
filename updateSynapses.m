@@ -23,7 +23,7 @@ function updateSynapses ()
 global SM;
 
 % dendrite  - cellID pair
-[dendrite, ~, cellID] = find(SM.dendriteToCell); % note same cellID might be repeated
+[dendrite, ~, cellID] = find(SM.dendriteToCell); % note: same cellID might be repeated
 % create a list of synapse-dendrite pairs
 [~, ~, dendriteID] = find(SM.synapseToDendrite);
 % create a list of synapse-preCell pairs
@@ -66,7 +66,7 @@ SM.synapsePermanence(strengthenSynapses) = SM.synapsePermanence(strengthenSynaps
 
 
 
-
+%% %%%%%%%% [ToDo: use AU.access flag to skip this part when AU HIT]
 %% Step 5: Demphasize synapses that predicted cells that are not in active input columns
 
 cp = (SM.cellPredicted(cellID) == 1); %logical array aligned with the dendrites

@@ -43,7 +43,7 @@ uL = unique(SM.dendriteToCell(xL)); % marks cells with active learning dendrites
 % SM.predictedActive contains a binary array with the predicting cells (2048*32)
 if ~isempty(SM.predictedActive)
 
-    % SM.predictedActive(uL) contains a binary array of only predicted cells (correctly predicted cells are '1')
+    % SM.predictedActive(uL) contains a binary array of correctly predicted cells as '1'
     lc_cols = uL(SM.predictedActive (uL));
     % lc_cols contains the locations of the correctly predicted cells in SM.predictedActive (uL)
 
@@ -64,7 +64,7 @@ activeCols = activeCols(x); % removes the columns with learnCell already set
 
 %% Iterate through the remaining columns selecting a single learnState cell in each
 n = length(activeCols);
-[row_i, col_i]  = find(SM.cellActive); % Contains the coordinates of rows and columns
+[row_i, col_i]  = find(SM.cellActive); % Contains the coordinates of active cells in rows and columns
 cellIDPrevious = find(SM.cellLearnPrevious); % contains the IDs of the previous active cells which will become synapses to the current input
 [~, cellColPrev] = ind2sub ([SM.M, SM.N], cellIDPrevious); % Columns of the provious active cells
 dCells = zeros(SM.N, 1); nDCells = 0; % Initializations
@@ -91,7 +91,7 @@ for k=1:n
     SM.cellLearn(cellChosen) = 1; % SM.cellLearn is the array containing the cells that will learn
     if (updateFlag)
         nDCells = nDCells + 1; % accounts for the amount of cells which need updateting
-        dCells (nDCells) = cellChosen; % contains the IDs of the cells that will have the dendrites
+        dCells (nDCells) = cellChosen; % contains the IDs of the synaptic cells
         expandDendrites (nDCells) = newSynapsesToDendrite; % accounts for new dendrites
     end
 end
@@ -121,8 +121,8 @@ function [chosenCell, addNewSynapsesToDendrite, updateFlag]  = getBestMatchingCe
 global SM;
 
 cellIndex = sub2ind([SM.M SM.N], i, j*ones(size(i))); % can be a vector
-%% [ToDo: delete find, as ismember already computes this info.]
 dendrites = ismember (SM.dendriteToCell, cellIndex);
+%% [ToDo: delete find, as ismember already computes this info.]
 dendrites = find(dendrites); % points to location of dendrite in SM.dendriteToCell
 lcChosen = false; % flag for chosen cell
 addNewSynapsesToDendrite = -1;
@@ -143,7 +143,7 @@ updateFlag = false;
 % else
     if (dendrites)
         [val, id] = max(SM.dendritePositive(dendrites));
-        if (val > SM.minPositiveThreshold) % adds dendrites if they exceed the Minimum dendritic segment activation threshold?????????????????????????????
+        if (val > SM.minPositiveThreshold) % adds dendrites if they exceed the Minimum dendritic segment activation threshold
             chosenCell = SM.dendriteToCell(dendrites(id)); % adds dendrite to the chosen cell
             lcChosen = true; % flags that cell has been chosen
             if (val < SM.Theta) 
