@@ -198,16 +198,16 @@ while iteration < (data.N + 1)
                 predictedInput = logical(sum(SM.cellPredicted));
                 anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
             end
-%% %%%%%%%% [ToDo: Strengthen permanences between SM.inputPrevious (synapses) and SM.input (neurons)]
-            %if AU.access_previous == 1 % will check if the previous
-            %iteration was through AU or HTM for proper HTM learning
-%             markActiveStates (); % based on x and PI_1 (prediction from
-            %% Ensures learning of i-1 -> i in HTM when AU is accessed
-            markActiveStates (); % based on x and PI_1 (prediction from past cycle)
-            
-            if learnFlag
-               markLearnStates ();
-               updateSynapses ();
+%           [Done: Strengthen permanences between SM.inputPrevious (synapses) and SM.input (neurons)]
+%           [Done: AU.access_previous == 1 % will check if the previous iteration was through AU or HTM for proper HTM learning]
+            if AU.access_previous == 1
+                % Sequence memory already learned in previous iteration
+            else
+                markActiveStates (); % based on x and PI_1 (prediction from past cycle)
+                if learnFlag
+                   markLearnStates ();
+                   updateSynapses ();
+                end
             end
             anomalyScores (iteration+1) = 0;
             % Increase count of <key, value> pair
@@ -217,9 +217,7 @@ while iteration < (data.N + 1)
             SM.inputPrevious = SM.input;
             SM.input = SM.inputNext;
             SM.inputNext = [];
-%% %%%%%%%% [ToDo: Strengthen permanences between SM.input (synapses) and SM.inputNext (neurons)]
-			%% Ensures learning of i -> i+1 in HTM when AU is accessed
-			% i+1 constitutes to SM.inputNext
+%           [Done: Strengthen permanences between SM.input (synapses) and SM.inputNext (neurons)]
             SM.cellActivePrevious = SM.cellActive;
             SM.cellLearn(:) = 0;
             SM.cellLearn(:,SM.input) = 1;
@@ -227,19 +225,64 @@ while iteration < (data.N + 1)
             reinforceDendrites = (SM.cellLearn(cellID) == 1);
             [~, ~, dendriteID] = find(SM.synapseToDendrite);
             [synapse, ~, ~] = find(SM.synapseToCell);
+%%            [ToDo: Update Sm.cellActive and SM.cellLearn]
+            SM.cellActive = SM.cellLearn;
             reinforceSynapses = ismember(dendriteID, dendrites(reinforceDendrites));
             strengthenSynapses = synapse(reinforceSynapses & (SM.synapsePermanence(synapse) < 1));
             SM.synapsePermanence(strengthenSynapses) = SM.synapsePermanence(strengthenSynapses) + SM.P_incr;
-%% %%%%%%%% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
-%             % Predict next state
-%             SM.cellPredictedPrevious = SM.cellPredicted;   
-%             markPredictiveStates ();
+            SM.cellPredictedPrevious = SM.cellPredicted;  
             SM.cellActivePrevious = SM.synapseToCell(strengthenSynapses);
             SM.cellLearnPrevious = SM.synapseToCell(strengthenSynapses);
             AU.access = 0;
-            AU.access_previous = 0; % flag to ensure propper HTM-AU Sync
+            AU.access_previous = 1; % flag to ensure propper HTM-AU Sync
             automatization = automatization + 1; % Increment AU access
             iteration = iteration + 1;
+        else
+            %% Compute anomaly score 
+            % based on what was predicted as the next expected sequence memory
+            % module input at last time instant.
+            if AU.access_previous == 1
+                % Prevents overriding the score calculated in the AU
+                %% %%%%%%%% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
+                % Predict next state
+                markPredictiveStates ();
+            else
+                predictedInput = logical(sum(SM.cellPredicted));
+                anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
+                %% Run the input through Sequence Memory (SM) module to compute the active
+                % cells in SM and also the predictions for the next time instant.
+                sequenceMemory (learnFlag);
+
+                if any(AU.rowLocation)
+                    % Increase count of <key, value> pair
+                    AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
+                    % Check the key column for the value with maximum count
+                    [AU.maxCount,AU.rowLocation] = max(AU.Counts{1,AU.colLocation});
+                    % Update uniqueCounts for that key
+                    AU.uniqueCounts(AU.colLocation) = AU.maxCount;
+                    % [ToDo: Check if the max <key, value> pair has changed before updating it]
+                    % Update uniquePatterns with max count
+                    AU.uniquePatterns(AU.colLocation,:) = [SM.input SM.inputNext];
+                else
+                    % Adds <key, value> pair to existing key column and initializes count.
+                    AU.inputHistory{1,AU.colLocation} = [AU.inputHistory{1,AU.colLocation}; SM.input SM.inputNext];
+                    AU.Counts{1,AU.colLocation} = [AU.Counts{1,AU.colLocation}; 1];
+                end
+            end
+
+            SM.inputPrevious = SM.input;
+            SM.input = SM.inputNext;
+            SM.cellActivePrevious = SM.cellActive;
+            SM.cellLearnPrevious = SM.cellLearn;
+            AU.access_previous = 0; % flag to ensure propper HTM-AU Sync
+            iteration = iteration + 1;
+        end
+    else
+        if AU.access_previous == 1
+            % Prevents overriding the score calculated in the AU
+            %% %%%%%%%% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
+            % Predict next state
+            markPredictiveStates ();
         else
             %% Compute anomaly score 
             % based on what was predicted as the next expected sequence memory
@@ -255,56 +298,21 @@ while iteration < (data.N + 1)
             % cells in SM and also the predictions for the next time instant.
             sequenceMemory (learnFlag);
 
-            if any(AU.rowLocation)
-                % Increase count of <key, value> pair
-                AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
-                % Check the key column for the value with maximum count
-                [AU.maxCount,AU.rowLocation] = max(AU.Counts{1,AU.colLocation});
-                % Update uniqueCounts for that key
-                AU.uniqueCounts(AU.colLocation) = AU.maxCount;
-                % [ToDo: Check if the max <key, value> pair has changed before updating it]
-                % Update uniquePatterns with max count
-                AU.uniquePatterns(AU.colLocation,:) = [SM.input SM.inputNext];
-            else
-                % Adds <key, value> pair to existing key column and initializes count.
-                AU.inputHistory{1,AU.colLocation} = [AU.inputHistory{1,AU.colLocation}; SM.input SM.inputNext];
-                AU.Counts{1,AU.colLocation} = [AU.Counts{1,AU.colLocation}; 1];
+            % Skips training data
+            if iteration > trN
+                % Create a new cell in AU.inputHistory and initialize the Counts
+                AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
+                AU.Counts{1,size(AU.Counts,2)+1} = 1;
+                % Create a new entry in AU.uniquePatterns and initialize uniqueCounts
+                AU.uniquePatterns = [AU.uniquePatterns; SM.inputPrevious SM.input];
+                AU.uniqueCounts = [AU.uniqueCounts; 1];
             end
-
-            SM.inputPrevious = SM.input;
-            SM.input = SM.inputNext;
-            SM.cellActivePrevious = SM.cellActive;
-            SM.cellLearnPrevious = SM.cellLearn;
-            iteration = iteration + 1;
-        end
-    else
-        %% Compute anomaly score 
-        % based on what was predicted as the next expected sequence memory
-        % module input at last time instant.
-        if anomalyScores (iteration) == 0
-            % Prevents overriding the score calculated in the AU
-        else
-            predictedInput = logical(sum(SM.cellPredicted));
-            anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-        end
-        
-        %% Run the input through Sequence Memory (SM) module to compute the active
-        % cells in SM and also the predictions for the next time instant.
-        sequenceMemory (learnFlag);
-        
-        % Skips training data
-        if iteration > trN
-            % Create a new cell in AU.inputHistory and initialize the Counts
-            AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
-            AU.Counts{1,size(AU.Counts,2)+1} = 1;
-            % Create a new entry in AU.uniquePatterns and initialize uniqueCounts
-            AU.uniquePatterns = [AU.uniquePatterns; SM.inputPrevious SM.input];
-            AU.uniqueCounts = [AU.uniqueCounts; 1];
         end
 
         SM.inputPrevious = SM.input;
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearnPrevious = SM.cellLearn;
+        AU.access_previous = 0; % flag to ensure propper HTM-AU Sync
         SM.input = [];
         iteration = iteration + 1;
     end
