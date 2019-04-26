@@ -190,7 +190,7 @@ while iteration < (data.N + 1)
         %fprintf("\n AU.rowLocation = %d\n",AU.rowLocation);
         
         % Compare AU prediction with next input
-        AU.access = (AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) == SM.inputNext);
+        AU.access = isequal(AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)), SM.inputNext);
         if AU.access
             if anomalyScores (iteration) == 0
                 % Prevents overriding the score calculated in the AU
@@ -225,11 +225,13 @@ while iteration < (data.N + 1)
             reinforceDendrites = (SM.cellLearn(cellID) == 1);
             [~, ~, dendriteID] = find(SM.synapseToDendrite);
             [synapse, ~, ~] = find(SM.synapseToCell);
-%%            [ToDo: Update Sm.cellActive and SM.cellLearn]
-            SM.cellActive = SM.cellLearn;
             reinforceSynapses = ismember(dendriteID, dendrites(reinforceDendrites));
             strengthenSynapses = synapse(reinforceSynapses & (SM.synapsePermanence(synapse) < 1));
             SM.synapsePermanence(strengthenSynapses) = SM.synapsePermanence(strengthenSynapses) + SM.P_incr;
+%%            [ToDo: Update Sm.cellActive and SM.cellLearn]
+            SM.cellLearn(:) = 0;
+            SM.cellLearn(nonzeros(SM.dendriteToCell(reinforceSynapses))) = 1;
+            SM.cellActive = SM.cellLearn;
             SM.cellPredictedPrevious = SM.cellPredicted;  
             SM.cellActivePrevious = SM.synapseToCell(strengthenSynapses);
             SM.cellLearnPrevious = SM.synapseToCell(strengthenSynapses);
