@@ -15,7 +15,6 @@ elseif AU.colLocation
         [AU.maxCount,AU.rowLocation] = max(AU.Counts{1,AU.colLocation});
         % Update uniqueCounts for that key
         AU.uniqueCounts(AU.colLocation) = AU.maxCount;
-        %% [ToDo: Check if the max <key, value> pair has changed before updating it]
         % Update uniquePatterns with max count
         AU.uniquePatterns(AU.colLocation,:) = [SM.input SM.inputNext];
     else

@@ -1,11 +1,38 @@
-function attention (iteration,trN,learnFlag,displayFlag)
+function attention (iteration,trN,learnFlag,displayFlag, automatization_flag, temporal_pooling_flag)
+%% This function is supervisor/control unit between Sequence Memory, Automatization and Temporal Pooler.
+% It always checks with the Automatization Unit (AU) before computing through the Sequence Memory
+% iteration: is the current instance of data that is being processed
+% trN: is the amount of data points selected for training
+% learnFlag: invokes the learning of the Sequence Memory 
+% displayFlag: shows animation of cells (turning on, bursting and predicting)
+% automatization_flag: invokes the Automatization Unit
+% temporal_pooling_flag: invokes the Temporal Pool
 
-global  SP SM TP AU data anomalyScores predictions
+% Note: The Temporal pooler is not fully implemented if invoked with Automatization
 
-[~,AU.colLocation] = ismember(SM.input,AU.uniquePatterns(:,1:(size(SM.input,2))),'row');
-if AU.colLocation && (iteration<data.N) && (iteration>trN)
+%% Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA
+% This work is licensed under the Attribution-NonCommercial-ShareAlike 4.0 International License.
+% To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
+
+
+global SM TP AU data anomalyScores
+
+% Invokes AU
+if automatization_flag
+    [~,AU.colLocation] = ismember(SM.input,AU.uniquePatterns(:,1:(size(SM.input,2))),'row');
+else
+    AU.colLocation = 0;
+end
+
+% (iteration>trN) prevents the AU from predicting on training data because it was built with this data in the Spatial Pooler training
+% AU.colLocation is non-zero when it finds a key in the AU.uniquePatterns (this key corresponds to a first-order-sequence pair)
+
+if AU.colLocation && (iteration>trN) && (iteration<data.N)
     %% Get the next input to validate AU prediction.
-    % [ToDo: Will be processed through 'SPOutput']
     x = [];
     for  i=1:length(data.fields)
         j = data.fields(i);
@@ -16,8 +43,8 @@ if AU.colLocation && (iteration<data.N) && (iteration>trN)
     data.inputSDR = [data.inputSDR; SM.inputNext];
 
     % check if value exist in inputHistory
+	% AU.rowLocation is used in the automatizationUnit
     [~,AU.rowLocation] = ismember(SM.inputNext,AU.inputHistory{1,AU.colLocation}(:,(size(SM.inputNext,2)+1):size(AU.uniquePatterns,2)),'row');
-    %fprintf("\n AU.rowLocation = %d\n",AU.rowLocation);
 
     % Compare AU prediction with next input
     AU.access = isequal(AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)), SM.inputNext);
@@ -28,59 +55,56 @@ if AU.colLocation && (iteration<data.N) && (iteration>trN)
             predictedInput = logical(sum(SM.cellPredicted));
             anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
         end
-%           [Done: Strengthen permanences between SM.inputPrevious (synapses) and SM.input (neurons)]
-%           [Done: AU.access_previous == 1 % will check if the previous iteration was through AU or HTM for proper HTM learning]
+
         if AU.access_previous == 1
             % Sequence memory already learned in previous iteration
         else
-            markActiveStates (); % based on x and PI_1 (prediction from past cycle)
-            if learnFlag
-               markLearnStates ();
-               updateSynapses ();
-            end
+			sequenceMemory (true,learnFlag,false);
         end
         anomalyScores (iteration+1) = 0;
         %% AU
-        automatizationUnit (iteration,trN);
-        SM.inputPrevious = SM.input;
-        SM.input = SM.inputNext;
-        SM.inputNext = [];
-%       [Done: Strengthen permanences between SM.input (synapses) and SM.inputNext (neurons)]
+        automatizationUnit ();
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearn(:) = 0;
-        SM.cellLearn(:,SM.input) = 1;
+        SM.cellLearn(:,SM.inputNext) = 1;
         updateSynapses();
         AU.access = 0;
         AU.access_previous = 1; % flag to ensure propper HTM-AU Sync
-    else
-        %% Compute anomaly score 
-        % based on what was predicted as the next expected sequence memory
-        % module input at last time instant.
+    else % if AU is not accessed
         if AU.access_previous == 1
             % Prevents overriding the score calculated in the AU
-            %% %%%%%%%% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
-            % Predict next state
-            markPredictiveStates ();
+            % Only used to predict next state
+            sequenceMemory (false,false,true);
         else
-            %% AU
+			%% Compute anomaly score 
+			% based on what was predicted as the next expected sequence memory
+			% module input at last time instant.
             predictedInput = logical(sum(SM.cellPredicted));
             anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-            automatizationUnit (iteration,trN);
+
             %% Run the input through Sequence Memory (SM) module to compute the active
             % cells in SM and also the predictions for the next time instant.
-            sequenceMemory (learnFlag);
+            sequenceMemory (true,learnFlag,true);
+			
+            if automatization_flag
+                %% AU
+                automatizationUnit ();
+            end
+			
+            %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
+            if temporal_pooling_flag && (iteration > trN)
+                % perform only after some iterations -- pooling makes sense over a period of time.
+                temporalPooler (true, displayFlag);
+                TP.unionSDRhistory (mod(iteration-1, size(TP.unionSDRhistory, 1))+1, :) =  TP.unionSDR;
+            end
         end
-
-        SM.inputPrevious = SM.input;
-        SM.input = SM.inputNext;
         AU.access_previous = 0; % flag to ensure propper HTM-AU Sync
     end
 else
     if AU.access_previous == 1
         % Prevents overriding the score calculated in the AU
-        %% %%%%%%%% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
         % Predict next state
-        markPredictiveStates ();
+        sequenceMemory (false,false,true);
     else
         %% Compute anomaly score 
         % based on what was predicted as the next expected sequence memory
@@ -94,16 +118,20 @@ else
 
         %% Run the input through Sequence Memory (SM) module to compute the active
         % cells in SM and also the predictions for the next time instant.
-        sequenceMemory (learnFlag);
+        sequenceMemory (true,learnFlag,true);
+        
+        %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
+        if temporal_pooling_flag && (iteration > trN)
+            % perform only after some iterations -- pooling makes sense over a period of time.
+            temporalPooler (true, displayFlag);
+            TP.unionSDRhistory (mod(iteration-1, size(TP.unionSDRhistory, 1))+1, :) =  TP.unionSDR;
+        end
 
         % Skips training data
-        if iteration > trN
+        if automatization_flag && (iteration > trN) && (iteration<data.N)
             %% AU
-            automatizationUnit (iteration,trN);
+            automatizationUnit ();
         end
     end
-
-    SM.inputPrevious = SM.input;
     AU.access_previous = 0; % flag to ensure propper HTM-AU Sync
-    SM.input = [];
 end

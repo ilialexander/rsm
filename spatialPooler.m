@@ -10,7 +10,7 @@ function active = spatialPooler (encodedInput, learnP, displayFlag)
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 %
 
-global  SM SP AU
+global  SM SP
 
 % flip row vector input into column vector, if needed.
 if size(encodedInput, 1) == 1, encodedInput = encodedInput'; end
@@ -25,10 +25,12 @@ overThreshold = (overlap > SP.stimulusThreshold);
 SP.overlapDutyCycle = 0.9 * SP.overlapDutyCycle + 0.1 * overThreshold;
 
 overlap = overThreshold.*overlap;
-if (learnP) overlap = overlap.*SP.boost; end
+if (learnP)
+    overlap = overlap.*SP.boost;
+end
 
 %% inhibit responses -- pick the top k columns
-[v,I] = sort (overlap, 'descend');
+[~,I] = sort (overlap, 'descend');
 overlap(I(round(SP.activeSparse*SM.N):SM.N)) = 0; 
 active = overlap > 0;
 

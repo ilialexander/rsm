@@ -88,7 +88,7 @@ for k=1:n
             cellChosen = cellIDPrevious(xJ(1));  % pick only one, if multiple
         end
     end
-    SM.cellLearn(cellChosen) = 1; % SM.cellLearn is the array containing the cells that will learn
+    SM.cellLearn(cellChosen) = 1; % SM.cellLearn is the array containing the cells that contain dendrites that will learn
     if (updateFlag)
         nDCells = nDCells + 1; % accounts for the amount of cells which need updateting
         dCells (nDCells) = cellChosen; % contains the IDs of the synaptic cells

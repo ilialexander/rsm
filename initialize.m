@@ -37,7 +37,7 @@ global  SM SP TP data AU
     SM.M = 32; %Number of cells per column M
     SM.Nd = 128; %Maximum number of dendritic segments per cell
     SM.Ns = 128; %Maximum number of synapses per dendritic segment
-    SM.Nss = 30; %Maximum number of synapses per dendritic segment
+    SM.Nss = 30; %Maximum number of new synapses added per iteration
 
     SM.Theta = 20; %Dendritic segment activation threshold
     SM.minPositiveThreshold = 10; %% Minimum dendritic segment activation threshold?
@@ -46,18 +46,8 @@ global  SM SP TP data AU
     SM.P_incr = 0.04; %Synaptic permanence increment
     SM.P_decr = 0.008; %Synaptic permanence decrement
     SM.P_decr_pred = 0.001; %0.001; %Synaptic permanence decrement for predicted inactive segments
-    
-    
-    %% parameters for automotization unit   
-    % AU.inputHistory => cells of arrays, each cell holds an array of a specific key, 
-    % AU.inputHistory => each row in the array contains a different value for that specific key.
-    AU.inputHistory = {0}; 
-    AU.Counts = {0}; % Holds the count for all entries in AU.inputHistory. {similar structure as AU.inputHistory}
-    AU.uniquePatterns = []; % Holds <key, value> pairs with highest counts
-    AU.uniqueCounts = []; % Holds count of AU.uniquePatterns.
-    
+       
     %% parameters for temporal pooler
-    
     TP.potentialPct = 0.5; % Input percentage that are potential synapse
     TP.connectPerm = 0.1; % Synapses with permanence above this are considered connected.
     TP.initialConnectPerm = 0.101; % Synapses with permanence above this are considered connected.
@@ -106,12 +96,7 @@ global  SM SP TP data AU
 
     SM.cellLearn = logical(sparse(SM.M, SM.N));
     SM.cellLearnPrevious = logical(sparse(SM.M, SM.N));
-    
-    % new data structure base on pointers between
-    % synapse -> dendrites -> cells and
-    %    |-> cells
-    % permanence is stored indexed by the synapses
-    
+       
     SM.maxDendrites = round (SP.activeSparse * SM.N * SM.M * SM.Nd);
     SM.maxSynapses = round (SP.activeSparse * SM.N * SM.M * SM.Nd * SM.Ns);
     SM.totalDendrites = 0;
@@ -122,20 +107,35 @@ global  SM SP TP data AU
     SM.numDendritesPerCell = sparse (SM.M, SM.N); % stores number of dendrite information per cell
     SM.numSynapsesPerCell = sparse (SM.M, SM.N); % stores number of dendrite information per cell
     SM.numSynpasesPerDendrite = sparse (SM.maxDendrites, 1);
-
-    SM.synapseToCell = sparse (SM.maxSynapses, 1);
-    SM.synapseToDendrite = sparse (SM.maxSynapses, 1);
-    SM.synapsePermanence = sparse (SM.maxSynapses, 1);
+	
+	%% Structure of Sequence Memory please refer to the image in 'SM Structure.jpeg'
+    % new data structure base on pointers between
+    % synapse -> dendrites -> cells and
+    %    |-> cells
+    % permanence is stored indexed by the synapses
+	
+	% Each dendrite is connected to only one cell and more than one synapse contribute to this dendrite.
+	
+    SM.synapseToCell = sparse (SM.maxSynapses, 1); % IDs of cells acting as synapses
+    SM.synapseToDendrite = sparse (SM.maxSynapses, 1); % IDS of the dentrites that each synapse is connected to [each dendrite has more than one synapse]
+    SM.synapsePermanence = sparse (SM.maxSynapses, 1); % same estructure as SM.synapseToCell
     SM.synapseActive = []; %sparse (SM.maxSynapses, 1);
     SM.synapsePositive = []; %sparse (SM.maxSynapses, 1);
     SM.synapseLearn = []; %sparse (SM.maxSynapses, 1);
     
-    SM.dendriteToCell = sparse (SM.maxDendrites, 1);
+    SM.dendriteToCell = sparse (SM.maxDendrites, 1); % IDs of cells which contain dendrites
     SM.dendritePositive = sparse (SM.maxDendrites, 1);
     SM.dendriteActive = sparse (SM.maxDendrites, 1);
     SM.dendriteLearn = sparse (SM.maxDendrites, 1);
     
-
+    %% parameters for automotization unit   
+    % AU.inputHistory => cells of arrays, each cell holds an array of a specific key, 
+    % AU.inputHistory => each row in the array contains a different value for that specific key.
+    AU.inputHistory = {0}; 
+    AU.Counts = {0}; % Holds the count for all entries in AU.inputHistory. {similar structure as AU.inputHistory}
+    AU.uniquePatterns = []; % Holds <key, value> pairs with highest counts
+    AU.uniqueCounts = []; % Holds count of AU.uniquePatterns.
+    AU.access = 0; % flag to grant access to search value of i+1 in AU
    
      %% Setup arrays for Temporal pooler
     

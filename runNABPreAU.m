@@ -1,4 +1,4 @@
-function runNABPreAU (startFile, endFile, displayFlag, createModelFlag)
+function runNABPreAU (startFile, endFile, displayFlag, createModelFlag, automatization_flag, temporal_pooling_flag)
 time = datetime;
 % This function through the entore NAB dataset
 %
@@ -60,12 +60,15 @@ fprintf(1, '\n %d files to process in total', i);
 close all;
 for i=startFile:endFile
     clear global;
-   
+
+
+%% [ToDo: calculate time complexity with training]
+
     [~, name, ~] = fileparts(fileNames{i});
     
     %% Create Model
     if createModelFlag
-        mainPreAU  (fileNames{i}, name, displayFlag, true, 'none');
+        mainPreAU  (fileNames{i}, name, displayFlag, true, 'none', automatization_flag, temporal_pooling_flag);
     end
     
     %% Read saved run data --

@@ -1,4 +1,4 @@
-function mainPreAU  (inFile, outFile, displayFlag, learnFlag, learntDataFile)
+function mainPreAU  (inFile, outFile, displayFlag, learnFlag, learntDataFile, automatization_flag, temporal_pooling_flag)
 % This is the main function that (i) sets up the parameters, (ii)
 % initializes the spatial pooler, and (iii) iterates through the data and
 % feed it through the spatial pooler and temporal memory modules.
@@ -22,7 +22,6 @@ function mainPreAU  (inFile, outFile, displayFlag, learnFlag, learntDataFile)
 % on https://github.com/SudeepSarkar/matlabHTM
 
 global  SP SM TP AU data anomalyScores predictions
-
 
 if learnFlag
   %% Encode Input into Binary Semantic Representation 
@@ -55,7 +54,7 @@ if learnFlag
         xSM = spatialPooler (x, true, false);
 
         % train the Automatization Unit (AU)
-        if (iteration > 2)
+        if automatization_flag && (iteration > 2)
             % check if the key is in the AU
             [~,AU.colLocation] = ismember(xSMPrevious,AU.uniquePatterns(:,1:size(xSMPrevious,2)),'row');
             if AU.colLocation
@@ -64,6 +63,12 @@ if learnFlag
                 if AU.rowLocation
                     % Increase count of existing <key, value> pair
                     AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
+					% Check the key column for the value with maximum count
+					[AU.maxCount,AU.rowLocation] = max(AU.Counts{1,AU.colLocation});
+					% Update uniqueCounts for that key
+					AU.uniqueCounts(AU.colLocation) = AU.maxCount;
+					% Update uniquePatterns with max count
+					AU.uniquePatterns(AU.colLocation,:) = [xSMPrevious xSM];
                 else
                     % Add value and initialize count (1) to existing key
                     AU.inputHistory{1,AU.colLocation} = [AU.inputHistory{1,AU.colLocation}; xSMPrevious xSM];
@@ -77,7 +82,7 @@ if learnFlag
                AU.Counts{1,size(AU.Counts,2)+1} = 1;
                AU.uniqueCounts = [AU.uniqueCounts; 1];
             end
-        elseif iteration == 2
+        elseif automatization_flag && iteration == 2
             % Initialize inputHistory, uniquePatterns and counts
             AU.inputHistory{1} = [xSMPrevious xSM];
             AU.uniquePatterns = [xSMPrevious xSM];
@@ -129,7 +134,7 @@ SP.boost = ones (SM.N, 1);
 % next
 
 
-fprintf('\n Running input of length %d through sequence memory to detect anomaly...', data.N);
+fprintf('\n Running input of length %d through attention to detect anomaly...', data.N);
 
 %% Iterate through the input data and feed through the spatial pooler, sequence memory and temporal pooler, as needed.
 
@@ -144,7 +149,8 @@ AU.access = [];
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
     if ~any(SM.input)
-        % [ToDo: Will be processed through 'SPOutput']
+        %% [ToDo: Will be processed through 'SPOutput' function]
+        %% [ToDo: optimize processing the SM.input by eliminating the for loop]
         x = [];
         for  i=1:length(data.fields)
             j = data.fields(i);
@@ -161,19 +167,9 @@ while iteration < (data.N + 1)
     end
 
     % Check for the key
-    attention (iteration,trN,learnFlag,displayFlag);
-
-    %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
-    %     if (iteration > 150)
-    %        perform only after some iterations -- pooling makes sense over
-    %        a period of time.
-    %         temporalPooler (true, displayFlag);
-    %         TP.unionSDRhistory (mod(iteration-1, size(TP.unionSDRhistory, 1))+1, :) =  TP.unionSDR;
-    %
-    %     end;
-    %% This part of the code is just for display of variables and plots/figures
+    attention (iteration, trN, learnFlag, displayFlag, automatization_flag, temporal_pooling_flag);
     
-    
+    %% This part of the code is just for display of variables and plots/figures    
     if (displayFlag)
         
         if (iteration > 2)
@@ -197,8 +193,10 @@ while iteration < (data.N + 1)
     end
     
     
+    SM.inputPrevious = SM.input;
+    SM.input = SM.inputNext;
+    SM.inputNext = [];
     %%
-%    SM.inputPrevious = SM.input;
     SM.cellActivePrevious = SM.cellActive;
     SM.cellLearnPrevious = SM.cellLearn;
     iteration = iteration + 1;  

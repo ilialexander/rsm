@@ -1,10 +1,13 @@
 To Do List for AU and possible improvements
-1. Build Attention Structure (Attention -> AU -> SM)
-2. Create AU flag
-3. Convert AU to Sparse
-4. Enhance overall Performance of system with AU
-
-
+1. Delete all unnecesary files
+2. Check both SM and SMAU with 8 GB ram
+2. Convert AU to Sparse
+3. Discuss with Dr. Sarkar the commenting of [51] preSynapticActiveCells in updateSynapses
+3. Enhance overall Performance of system with AU
+3. ToDo: optimize processing the SM.input by eliminating the for loop
+3. Updated AU patterns in batches
+4. Save Spatial pooler for optimal case
+5. run for 1000 times for average and scores
 
 
 
