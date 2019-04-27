@@ -1,8 +1,5 @@
-function runNAB (startFile, endFile, displayFlag, createModelFlag,automatization)
-% startFile = 1;
-% endFile = 2;
-% displayFlag = false;
-% createModelFlag = true;
+function runNAB (startFile, endFile, displayFlag, createModelFlag, automatization_flag, temporal_pooling_flag)
+time = datetime;
 % This function through the entore NAB dataset
 %
 % Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA
@@ -57,18 +54,21 @@ while ~feof(fid)
     fscanf(fid, '%d ', 1); % skip the line count in the first column
     fileNames{i} = fscanf(fid, '%s ', 1);
     i = i+1;
-end;
+end
 fclose (fid);
 fprintf(1, '\n %d files to process in total', i);
 close all;
 for i=startFile:endFile
     clear global;
-   
+
+
+%% [ToDo: calculate time complexity with training]
+
     [~, name, ~] = fileparts(fileNames{i});
     
     %% Create Model
     if createModelFlag
-        main  (fileNames{i}, name, displayFlag, true, 'none', automatization);
+        main  (fileNames{i}, name, displayFlag, true, 'none', automatization_flag, temporal_pooling_flag);
     end
     
     %% Read saved run data --
@@ -125,6 +125,7 @@ for i=startFile:endFile
         %subplot(6,1,6); hold on; plot(detectionsNumenta,'r'); title ('Detections'); hold off; axis('tight');
 
     end
+%    fprintf("\n%s\n",datetime);
 end
 nBoot = 200;
 
@@ -182,3 +183,4 @@ fprintf (1, '\n Our Raw Scores + Our Anomaly Likelihood: %4.3f (Bootstrap estima
 % for j=1:length(i)
 %     fprintf(1, '\n%s', fileNames{i(j)});
 % end
+fprintf ('\nProcessing Time is: %s\n',diff([time datetime]));
