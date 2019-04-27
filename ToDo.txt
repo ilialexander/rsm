@@ -1,8 +1,11 @@
 To Do List for AU and possible improvements
-1. Convert AU to Sparse
-2. Enhance overall Performance of system with AU
-3. Create AU flag
-4. Build Attention Structure (Attention -> AU -> SM)
+1. Build Attention Structure (Attention -> AU -> SM)
+2. Create AU flag
+3. Convert AU to Sparse
+4. Enhance overall Performance of system with AU
+
+
+
 
 
 Proposed Ideas

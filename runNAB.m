@@ -1,4 +1,4 @@
-function runNAB (startFile, endFile, displayFlag, createModelFlag)
+function runNAB (startFile, endFile, displayFlag, createModelFlag,automatization)
 % startFile = 1;
 % endFile = 2;
 % displayFlag = false;
@@ -68,7 +68,7 @@ for i=startFile:endFile
     
     %% Create Model
     if createModelFlag
-        main  (fileNames{i}, name, displayFlag, true, 'none');
+        main  (fileNames{i}, name, displayFlag, true, 'none', automatization);
     end
     
     %% Read saved run data --

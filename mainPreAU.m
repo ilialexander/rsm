@@ -38,18 +38,11 @@ if learnFlag
     %% Learning mode for Spatial Pooler
     % We train the spatial pooler in a separate step from sequence memory
     fprintf(1, '\n Learning sparse distributed representations using spatial pooling...');
-    trN = min (750, round(0.15*data.N)); 
+    trN = min (750, round(0.15*data.N));
     % use the first 15 percent of the data (upto a maximum of 750) samples for training the spatial pooler. 
     
     xSMPrevious = [];
-    % AU.inputHistory => cells of arrays, each cell holds a array of a specific key, 
-    % AU.inputHistory => each row in the array contains a different value for that specific key.
-    AU.inputHistory = {0}; 
-    AU.Counts = {0}; % Holds the count for all entries in AU.inputHistory. {similar structure as AU.inputHistory}
-    AU.uniquePatterns = []; % Holds <key, value> pairs with highest counts
-    AU.uniqueCounts = []; % Holds count of AU.uniquePatterns. 
     iteration = 1;
-    
     while iteration < trN
         % [ToDo: Move this to a function called 'SPOutput']
         x = []; % construct the binary vector x for each measurement from the data fields
@@ -62,13 +55,13 @@ if learnFlag
         xSM = spatialPooler (x, true, false);
 
         % train the Automatization Unit (AU)
-        if iteration > 2
+        if (iteration > 2)
             % check if the key is in the AU
             [~,AU.colLocation] = ismember(xSMPrevious,AU.uniquePatterns(:,1:size(xSMPrevious,2)),'row');
-            if any(AU.colLocation)
+            if AU.colLocation
                 % check if the corresponding value exist
                 [~,AU.rowLocation] = ismember(xSM,AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),'row');
-                if any(AU.rowLocation)
+                if AU.rowLocation
                     % Increase count of existing <key, value> pair
                     AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
                 else
@@ -93,7 +86,6 @@ if learnFlag
         else
             % Do nothing
         end
-            
         
         %Can we reconstruct the input by inverting the process? This is
         %just for sanity check. It is NOT used for training the spatial
@@ -113,7 +105,7 @@ if learnFlag
 else
     load (learntDataFile);
 end
-  
+
 % Initialize plot areas
 close all; 
 if displayFlag
@@ -146,8 +138,8 @@ iteration = 1;
 SM.input = [];
 SM.inputNext = [];
 anomalyScores = ones(1,data.N);
-automatization = 0; % Counts the times AU is accessed.
 AU.access_previous = 0;
+AU.access = [];
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
@@ -169,155 +161,7 @@ while iteration < (data.N + 1)
     end
 
     % Check for the key
-    [~,AU.colLocation] = ismember(SM.input,AU.uniquePatterns(:,1:(size(SM.input,2))),'row');
-    if any(AU.colLocation) && (iteration<data.N) && (iteration>trN)
-        %AU.anomalyScore = 0;
-        %% Get the next input to validate AU prediction.
-        % [ToDo: Will be processed through 'SPOutput']
-        x = [];
-        for  i=1:length(data.fields)
-            j = data.fields(i);
-            x = [x data.code{j}(data.value{j}(iteration+1),:)];
-        end
-        SM.inputNext = spatialPooler (x, false, displayFlag);
-        data.inputCodes = [data.inputCodes; x]; 
-        data.inputSDR = [data.inputSDR; SM.inputNext];
-
-        %AU.anomalyScore = 1 - nnz(AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)) & SM.input)/nnz(SM.input);
-        
-        % check if value exist in inputHistory
-        [~,AU.rowLocation] = ismember(SM.inputNext,AU.inputHistory{1,AU.colLocation}(:,(size(SM.inputNext,2)+1):size(AU.uniquePatterns,2)),'row');
-        %fprintf("\n AU.rowLocation = %d\n",AU.rowLocation);
-        
-        % Compare AU prediction with next input
-        AU.access = isequal(AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)), SM.inputNext);
-        if AU.access
-            if anomalyScores (iteration) == 0
-                % Prevents overriding the score calculated in the AU
-            else
-                predictedInput = logical(sum(SM.cellPredicted));
-                anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-            end
-%           [Done: Strengthen permanences between SM.inputPrevious (synapses) and SM.input (neurons)]
-%           [Done: AU.access_previous == 1 % will check if the previous iteration was through AU or HTM for proper HTM learning]
-            if AU.access_previous == 1
-                % Sequence memory already learned in previous iteration
-            else
-                markActiveStates (); % based on x and PI_1 (prediction from past cycle)
-                if learnFlag
-                   markLearnStates ();
-                   updateSynapses ();
-                end
-            end
-            anomalyScores (iteration+1) = 0;
-            % Increase count of <key, value> pair
-            AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
-            % Update uniqueCounts for that key
-            AU.uniqueCounts(AU.colLocation) = AU.uniqueCounts(AU.colLocation) + 1;
-            SM.inputPrevious = SM.input;
-            SM.input = SM.inputNext;
-            SM.inputNext = [];
-%           [Done: Strengthen permanences between SM.input (synapses) and SM.inputNext (neurons)]
-            SM.cellActivePrevious = SM.cellActive;
-            SM.cellLearn(:) = 0;
-            SM.cellLearn(:,SM.input) = 1;
-            [dendrites, ~, cellID] = find(SM.dendriteToCell); % note: same cellID might be repeated
-            reinforceDendrites = (SM.cellLearn(cellID) == 1);
-            [~, ~, dendriteID] = find(SM.synapseToDendrite);
-            [synapse, ~, ~] = find(SM.synapseToCell);
-            reinforceSynapses = ismember(dendriteID, dendrites(reinforceDendrites));
-            strengthenSynapses = synapse(reinforceSynapses & (SM.synapsePermanence(synapse) < 1));
-            SM.synapsePermanence(strengthenSynapses) = SM.synapsePermanence(strengthenSynapses) + SM.P_incr;
-%%            [ToDo: Update Sm.cellActive and SM.cellLearn]
-            SM.cellLearn(:) = 0;
-            SM.cellLearn(nonzeros(SM.dendriteToCell(reinforceSynapses))) = 1;
-            SM.cellActive = SM.cellLearn;
-            SM.cellPredictedPrevious = SM.cellPredicted;  
-            SM.cellActivePrevious = SM.synapseToCell(strengthenSynapses);
-            SM.cellLearnPrevious = SM.synapseToCell(strengthenSynapses);
-            AU.access = 0;
-            AU.access_previous = 1; % flag to ensure propper HTM-AU Sync
-            automatization = automatization + 1; % Increment AU access
-            iteration = iteration + 1;
-        else
-            %% Compute anomaly score 
-            % based on what was predicted as the next expected sequence memory
-            % module input at last time instant.
-            if AU.access_previous == 1
-                % Prevents overriding the score calculated in the AU
-                %% %%%%%%%% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
-                % Predict next state
-                markPredictiveStates ();
-            else
-                predictedInput = logical(sum(SM.cellPredicted));
-                anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-                %% Run the input through Sequence Memory (SM) module to compute the active
-                % cells in SM and also the predictions for the next time instant.
-                sequenceMemory (learnFlag);
-
-                if any(AU.rowLocation)
-                    % Increase count of <key, value> pair
-                    AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
-                    % Check the key column for the value with maximum count
-                    [AU.maxCount,AU.rowLocation] = max(AU.Counts{1,AU.colLocation});
-                    % Update uniqueCounts for that key
-                    AU.uniqueCounts(AU.colLocation) = AU.maxCount;
-                    % [ToDo: Check if the max <key, value> pair has changed before updating it]
-                    % Update uniquePatterns with max count
-                    AU.uniquePatterns(AU.colLocation,:) = [SM.input SM.inputNext];
-                else
-                    % Adds <key, value> pair to existing key column and initializes count.
-                    AU.inputHistory{1,AU.colLocation} = [AU.inputHistory{1,AU.colLocation}; SM.input SM.inputNext];
-                    AU.Counts{1,AU.colLocation} = [AU.Counts{1,AU.colLocation}; 1];
-                end
-            end
-
-            SM.inputPrevious = SM.input;
-            SM.input = SM.inputNext;
-            SM.cellActivePrevious = SM.cellActive;
-            SM.cellLearnPrevious = SM.cellLearn;
-            AU.access_previous = 0; % flag to ensure propper HTM-AU Sync
-            iteration = iteration + 1;
-        end
-    else
-        if AU.access_previous == 1
-            % Prevents overriding the score calculated in the AU
-            %% %%%%%%%% [ToDo: Compute prediction with SM.inputNext (synapses) as an input]
-            % Predict next state
-            markPredictiveStates ();
-        else
-            %% Compute anomaly score 
-            % based on what was predicted as the next expected sequence memory
-            % module input at last time instant.
-            if anomalyScores (iteration) == 0
-                % Prevents overriding the score calculated in the AU
-            else
-                predictedInput = logical(sum(SM.cellPredicted));
-                anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-            end
-
-            %% Run the input through Sequence Memory (SM) module to compute the active
-            % cells in SM and also the predictions for the next time instant.
-            sequenceMemory (learnFlag);
-
-            % Skips training data
-            if iteration > trN
-                % Create a new cell in AU.inputHistory and initialize the Counts
-                AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
-                AU.Counts{1,size(AU.Counts,2)+1} = 1;
-                % Create a new entry in AU.uniquePatterns and initialize uniqueCounts
-                AU.uniquePatterns = [AU.uniquePatterns; SM.inputPrevious SM.input];
-                AU.uniqueCounts = [AU.uniqueCounts; 1];
-            end
-        end
-
-        SM.inputPrevious = SM.input;
-        SM.cellActivePrevious = SM.cellActive;
-        SM.cellLearnPrevious = SM.cellLearn;
-        AU.access_previous = 0; % flag to ensure propper HTM-AU Sync
-        SM.input = [];
-        iteration = iteration + 1;
-    end
+    attention (iteration,trN,learnFlag,displayFlag);
 
     %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
     %     if (iteration > 150)
@@ -357,10 +201,9 @@ while iteration < (data.N + 1)
 %    SM.inputPrevious = SM.input;
     SM.cellActivePrevious = SM.cellActive;
     SM.cellLearnPrevious = SM.cellLearn;
-    
+    iteration = iteration + 1;  
 end
 fprintf ('\nProcessing Time is: %s\n',diff([time datetime]));
-fprintf ("\nAutomatization Access: %d",automatization);
 fprintf('\n Running input of length %d through sequence memory to detect anomaly...done', data.N);
 
 % Uncomment this if you want to visualize Temporal Pooler output
@@ -377,8 +220,4 @@ else
         'SM', 'SP', 'data', 'anomalyScores', 'predictions',...
         '-v7.3');
 end
-
-
-
-
 

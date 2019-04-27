@@ -7,7 +7,7 @@ if AU.access
     AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
     % Update uniqueCounts for that key
     AU.uniqueCounts(AU.colLocation) = AU.uniqueCounts(AU.colLocation) + 1;
-elseif AU.colLocation && (iteration<data.N)
+elseif AU.colLocation
     if AU.rowLocation
         % Increase count of <key, value> pair
         AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
@@ -15,6 +15,7 @@ elseif AU.colLocation && (iteration<data.N)
         [AU.maxCount,AU.rowLocation] = max(AU.Counts{1,AU.colLocation});
         % Update uniqueCounts for that key
         AU.uniqueCounts(AU.colLocation) = AU.maxCount;
+        %% [ToDo: Check if the max <key, value> pair has changed before updating it]
         % Update uniquePatterns with max count
         AU.uniquePatterns(AU.colLocation,:) = [SM.input SM.inputNext];
     else
@@ -30,3 +31,4 @@ else
     AU.uniquePatterns = [AU.uniquePatterns; SM.inputPrevious SM.input];
     AU.uniqueCounts = [AU.uniqueCounts; 1];
 end
+

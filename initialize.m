@@ -47,6 +47,15 @@ global  SM SP TP data AU
     SM.P_decr = 0.008; %Synaptic permanence decrement
     SM.P_decr_pred = 0.001; %0.001; %Synaptic permanence decrement for predicted inactive segments
     
+    
+    %% parameters for automotization unit   
+    % AU.inputHistory => cells of arrays, each cell holds an array of a specific key, 
+    % AU.inputHistory => each row in the array contains a different value for that specific key.
+    AU.inputHistory = {0}; 
+    AU.Counts = {0}; % Holds the count for all entries in AU.inputHistory. {similar structure as AU.inputHistory}
+    AU.uniquePatterns = []; % Holds <key, value> pairs with highest counts
+    AU.uniqueCounts = []; % Holds count of AU.uniquePatterns.
+    
     %% parameters for temporal pooler
     
     TP.potentialPct = 0.5; % Input percentage that are potential synapse
