@@ -1,4 +1,4 @@
-function mainPreAU  (inFile, outFile, displayFlag, learnFlag, learntDataFile, automatization_flag, temporal_pooling_flag)
+function main (inFile, outFile, displayFlag, learnFlag, learntDataFile, automatization_flag, temporal_pooling_flag)
 % This is the main function that (i) sets up the parameters, (ii)
 % initializes the spatial pooler, and (iii) iterates through the data and
 % feed it through the spatial pooler and temporal memory modules.
