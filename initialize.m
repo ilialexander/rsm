@@ -129,12 +129,12 @@ global  SM SP TP data AU
     SM.dendriteLearn = sparse (SM.maxDendrites, 1);
     
     %% parameters for automotization unit   
-    % AU.inputHistory => cells of arrays, each cell holds an array of a specific key, 
-    % AU.inputHistory => each row in the array contains a different value for that specific key.
-    AU.inputHistory = {0}; 
-    AU.Counts = {0}; % Holds the count for all entries in AU.inputHistory. {similar structure as AU.inputHistory}
-    AU.uniquePatterns = []; % Holds <key, value> pairs with highest counts
-    AU.uniqueCounts = []; % Holds count of AU.uniquePatterns.
+    % AU.input_history => cells of arrays, each cell holds an array of a specific key, 
+    % AU.input_history => each row in the array contains a different value for that specific key.
+    AU.input_history = {0}; 
+    AU.input_history_counts = {0}; % Holds the count for all entries in AU.input_history. {similar structure as AU.input_history}
+    AU.unique_pairs = []; % Holds <key, value> pairs with highest counts
+    AU.unique_pairs_counts = []; % Holds count of AU.unique_pairs.
     AU.access = 0; % flag to grant access to search value of i+1 in AU
    
      %% Setup arrays for Temporal pooler

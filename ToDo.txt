@@ -2,10 +2,10 @@ To Do List for AU and possible improvements
 1. Checkout branch sparseAU
 2. Check both SM and SMAU with 8 GB ram
 2. Convert AU to Sparse
-3. Discuss with Dr. Sarkar the commenting of [51] preSynapticActiveCells in updateSynapses
 3. Enhance overall Performance of system with AU
 3. ToDo: optimize processing the SM.input by eliminating the for loop
-3. Updated AU patterns in batches
+3. Update AU patterns in batches
+3. Study Temporal Pooler permanence with AU
 4. Save Spatial pooler for optimal case
 5. run for 1000 times for average and scores
 

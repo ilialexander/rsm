@@ -1,7 +1,7 @@
 function automatizationUnit ()
 % This function keeps a full history of all the inputs organized as first-order-sequence <key,value> pairs. Keeping a tallie of the frequency of each pair in 'AU.input_history_counts'.
-% Unique first-order-sequence <key,value> pairs are also saved in a separate array 'AU.uniquePatterns' and updated with the maximum frequency pairs under the respective 'key'.
-% The maximum frequency count is also stored per each 'key' in 'AU.uniqueCounts'
+% Unique first-order-sequence <key,value> pairs are also saved in a separate array 'AU.unique_pairs' and updated with the maximum frequency pairs under the respective 'key'.
+% The maximum frequency count is also stored per each 'key' in 'AU.unique_pairs_counts'
 
 
 %% Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA
@@ -14,35 +14,35 @@ function automatizationUnit ()
 
 global SM AU
 
-%% [ToDo: Change all variable name styles from AU.Counts to AU.counts or AU.input_history_counts]
-%% [ToDo: Change variable name from AU.Counts to AU.input_history_counts]
+%% [ToDo: Change all variable name styles from AU.input_history_counts to AU.input_history_counts or AU.input_history_counts]
+%% [ToDo: Change variable name from AU.input_history_counts to AU.input_history_counts]
 
 if AU.access
     % Increase count of <key, value> pair
-    AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
-    % Update uniqueCounts for that key
-    AU.uniqueCounts(AU.colLocation) = AU.uniqueCounts(AU.colLocation) + 1;
-elseif AU.colLocation
-	% checks if value exist in 'AU.inputHistory'
-    if AU.rowLocation
+    AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;
+    % Update unique_pairs_counts for that key
+    AU.unique_pairs_counts(AU.column_location) = AU.unique_pairs_counts(AU.column_location) + 1;
+elseif AU.column_location
+	% checks if value exist in 'AU.input_history'
+    if AU.row_location
         % Increase count of <key, value> pair
-        AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
+        AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;
         % Check the key column for the value with maximum count
-        [AU.maxCount,AU.rowLocation] = max(AU.Counts{1,AU.colLocation});
-        % Update uniqueCounts for that key
-        AU.uniqueCounts(AU.colLocation) = AU.maxCount;
-        % Update uniquePatterns with max count
-        AU.uniquePatterns(AU.colLocation,:) = [SM.input SM.inputNext];
+        [max_count,AU.row_location] = max(AU.input_history_counts{1,AU.column_location});
+        % Update unique_pairs_counts for that key
+        AU.unique_pairs_counts(AU.column_location) = max_count;
+        % Update unique_pairs with max count
+        AU.unique_pairs(AU.column_location,:) = [SM.input SM.inputNext];
     else
         % Adds <key, value> pair to existing 'key' column and initializes count.
-        AU.inputHistory{1,AU.colLocation} = [AU.inputHistory{1,AU.colLocation}; SM.input SM.inputNext];
-        AU.Counts{1,AU.colLocation} = [AU.Counts{1,AU.colLocation}; 1];
+        AU.input_history{1,AU.column_location} = [AU.input_history{1,AU.column_location}; SM.input SM.inputNext];
+        AU.input_history_counts{1,AU.column_location} = [AU.input_history_counts{1,AU.column_location}; 1];
     end
 else
-    % Create a new cell in AU.inputHistory and initialize the Counts
-    AU.inputHistory{1,size(AU.inputHistory,2)+1} = [SM.inputPrevious SM.input];
-    AU.Counts{1,size(AU.Counts,2)+1} = 1;
-    % Create a new entry in AU.uniquePatterns and initialize uniqueCounts
-    AU.uniquePatterns = [AU.uniquePatterns; SM.inputPrevious SM.input];
-    AU.uniqueCounts = [AU.uniqueCounts; 1];
+    % Create a new cell in AU.input_history and initialize the Counts
+    AU.input_history{1,size(AU.input_history,2)+1} = [SM.inputPrevious SM.input];
+    AU.input_history_counts{1,size(AU.input_history_counts,2)+1} = 1;
+    % Create a new entry in AU.unique_pairs and initialize unique_pairs_counts
+    AU.unique_pairs = [AU.unique_pairs; SM.inputPrevious SM.input];
+    AU.unique_pairs_counts = [AU.unique_pairs_counts; 1];
 end

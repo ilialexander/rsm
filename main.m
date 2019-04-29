@@ -1,4 +1,4 @@
-function mainPreAU  (inFile, outFile, displayFlag, learnFlag, learntDataFile, automatization_flag, temporal_pooling_flag)
+function main (inFile, outFile, displayFlag, learnFlag, learntDataFile, automatization_flag, temporal_pooling_flag)
 % This is the main function that (i) sets up the parameters, (ii)
 % initializes the spatial pooler, and (iii) iterates through the data and
 % feed it through the spatial pooler and temporal memory modules.
@@ -56,38 +56,38 @@ if learnFlag
         % train the Automatization Unit (AU)
         if automatization_flag && (iteration > 2)
             % check if the key is in the AU
-            [~,AU.colLocation] = ismember(xSMPrevious,AU.uniquePatterns(:,1:size(xSMPrevious,2)),'row');
-            if AU.colLocation
+            [~,AU.column_location] = ismember(xSMPrevious,AU.unique_pairs(:,1:size(xSMPrevious,2)),'row');
+            if AU.column_location
                 % check if the corresponding value exist
-                [~,AU.rowLocation] = ismember(xSM,AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),'row');
-                if AU.rowLocation
+                [~,AU.row_location] = ismember(xSM,AU.input_history{1,AU.column_location}(:,(size(xSM,2)+1):size(AU.unique_pairs,2)),'row');
+                if AU.row_location
                     % Increase count of existing <key, value> pair
-                    AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
+                    AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;
 					% Check the key column for the value with maximum count
-					[AU.maxCount,AU.rowLocation] = max(AU.Counts{1,AU.colLocation});
-					% Update uniqueCounts for that key
-					AU.uniqueCounts(AU.colLocation) = AU.maxCount;
-					% Update uniquePatterns with max count
-					AU.uniquePatterns(AU.colLocation,:) = [xSMPrevious xSM];
+					[max_count,AU.row_location] = max(AU.input_history_counts{1,AU.column_location});
+					% Update unique_pairs_counts for that key
+					AU.unique_pairs_counts(AU.column_location) = max_count;
+					% Update unique_pairs with max count
+					AU.unique_pairs(AU.column_location,:) = [xSMPrevious xSM];
                 else
                     % Add value and initialize count (1) to existing key
-                    AU.inputHistory{1,AU.colLocation} = [AU.inputHistory{1,AU.colLocation}; xSMPrevious xSM];
-                    AU.Counts{1,AU.colLocation} = [AU.Counts{1,AU.colLocation}; 1];
+                    AU.input_history{1,AU.column_location} = [AU.input_history{1,AU.column_location}; xSMPrevious xSM];
+                    AU.input_history_counts{1,AU.column_location} = [AU.input_history_counts{1,AU.column_location}; 1];
                 end
             else
-               % Add new key and value to inputHistory and uniquePatterns
-               AU.inputHistory{1,size(AU.inputHistory,2)+1} = [xSMPrevious xSM];
-               AU.uniquePatterns = [AU.uniquePatterns; xSMPrevious xSM];
+               % Add new key and value to input_history and unique_pairs
+               AU.input_history{1,size(AU.input_history,2)+1} = [xSMPrevious xSM];
+               AU.unique_pairs = [AU.unique_pairs; xSMPrevious xSM];
                % Initialize counts
-               AU.Counts{1,size(AU.Counts,2)+1} = 1;
-               AU.uniqueCounts = [AU.uniqueCounts; 1];
+               AU.input_history_counts{1,size(AU.input_history_counts,2)+1} = 1;
+               AU.unique_pairs_counts = [AU.unique_pairs_counts; 1];
             end
         elseif automatization_flag && iteration == 2
-            % Initialize inputHistory, uniquePatterns and counts
-            AU.inputHistory{1} = [xSMPrevious xSM];
-            AU.uniquePatterns = [xSMPrevious xSM];
-            AU.Counts{1} = 1;
-            AU.uniqueCounts = 1;
+            % Initialize input_history, unique_pairs and counts
+            AU.input_history{1} = [xSMPrevious xSM];
+            AU.unique_pairs = [xSMPrevious xSM];
+            AU.input_history_counts{1} = 1;
+            AU.unique_pairs_counts = 1;
         else
             % Do nothing
         end

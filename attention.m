@@ -23,15 +23,15 @@ global SM TP AU data anomalyScores
 
 % Invokes AU
 if automatization_flag
-    [~,AU.colLocation] = ismember(SM.input,AU.uniquePatterns(:,1:(size(SM.input,2))),'row');
+    [~,AU.column_location] = ismember(SM.input,AU.unique_pairs(:,1:(size(SM.input,2))),'row');
 else
-    AU.colLocation = 0;
+    AU.column_location = 0;
 end
 
 % (iteration>trN) prevents the AU from predicting on training data because it was built with this data in the Spatial Pooler training
-% AU.colLocation is non-zero when it finds a key in the AU.uniquePatterns (this key corresponds to a first-order-sequence pair)
+% AU.column_location is non-zero when it finds a key in the AU.unique_pairs (this key corresponds to a first-order-sequence pair)
 
-if AU.colLocation && (iteration>trN) && (iteration<data.N)
+if AU.column_location && (iteration>trN) && (iteration<data.N)
     %% Get the next input to validate AU prediction.
     x = [];
     for  i=1:length(data.fields)
@@ -42,12 +42,12 @@ if AU.colLocation && (iteration>trN) && (iteration<data.N)
     data.inputCodes = [data.inputCodes; x]; 
     data.inputSDR = [data.inputSDR; SM.inputNext];
 
-    % check if value exist in inputHistory
-	% AU.rowLocation is used in the automatizationUnit
-    [~,AU.rowLocation] = ismember(SM.inputNext,AU.inputHistory{1,AU.colLocation}(:,(size(SM.inputNext,2)+1):size(AU.uniquePatterns,2)),'row');
+    % check if value exist in input_history
+	% AU.row_location is used in the automatizationUnit
+    [~,AU.row_location] = ismember(SM.inputNext,AU.input_history{1,AU.column_location}(:,(size(SM.inputNext,2)+1):size(AU.unique_pairs,2)),'row');
 
     % Compare AU prediction with next input
-    AU.access = isequal(AU.uniquePatterns(AU.colLocation,(size(SM.input,2)+1):size(AU.uniquePatterns,2)), SM.inputNext);
+    AU.access = isequal(AU.unique_pairs(AU.column_location,(size(SM.input,2)+1):size(AU.unique_pairs,2)), SM.inputNext);
     if AU.access
         if anomalyScores (iteration) == 0
             % Prevents overriding the score calculated in the AU
