@@ -1,5 +1,5 @@
 To Do List for AU and possible improvements
-1. Delete all unnecesary files
+1. Checkout branch sparseAU
 2. Check both SM and SMAU with 8 GB ram
 2. Convert AU to Sparse
 3. Discuss with Dr. Sarkar the commenting of [51] preSynapticActiveCells in updateSynapses

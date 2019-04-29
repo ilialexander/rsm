@@ -1,4 +1,4 @@
-function main  (inFile, outFile, displayFlag, learnFlag, learntDataFile)
+function mainPreAU  (inFile, outFile, displayFlag, learnFlag, learntDataFile, automatization_flag, temporal_pooling_flag)
 % This is the main function that (i) sets up the parameters, (ii)
 % initializes the spatial pooler, and (iii) iterates through the data and
 % feed it through the spatial pooler and temporal memory modules.
@@ -21,7 +21,7 @@ function main  (inFile, outFile, displayFlag, learnFlag, learntDataFile)
 %
 % on https://github.com/SudeepSarkar/matlabHTM
 
-global  SP SM TP data AU anomalyScores predictions
+global  SP SM TP AU data anomalyScores predictions
 
 if learnFlag
   %% Encode Input into Binary Semantic Representation 
@@ -37,9 +37,13 @@ if learnFlag
     %% Learning mode for Spatial Pooler
     % We train the spatial pooler in a separate step from sequence memory
     fprintf(1, '\n Learning sparse distributed representations using spatial pooling...');
-    trN = min (750, round(0.15*data.N)); 
+    trN = min (750, round(0.15*data.N));
     % use the first 15 percent of the data (upto a maximum of 750) samples for training the spatial pooler. 
-    for iteration = 1:trN
+    
+    xSMPrevious = [];
+    iteration = 1;
+    while iteration < trN
+        % [ToDo: Move this to a function called 'SPOutput']
         x = []; % construct the binary vector x for each measurement from the data fields
         for  i=1:length(data.fields)
             j = data.fields(i);
@@ -48,6 +52,45 @@ if learnFlag
         
         % train the spatialPooler
         xSM = spatialPooler (x, true, false);
+
+        % train the Automatization Unit (AU)
+        if automatization_flag && (iteration > 2)
+            % check if the key is in the AU
+            [~,AU.colLocation] = ismember(xSMPrevious,AU.uniquePatterns(:,1:size(xSMPrevious,2)),'row');
+            if AU.colLocation
+                % check if the corresponding value exist
+                [~,AU.rowLocation] = ismember(xSM,AU.inputHistory{1,AU.colLocation}(:,(size(xSM,2)+1):size(AU.uniquePatterns,2)),'row');
+                if AU.rowLocation
+                    % Increase count of existing <key, value> pair
+                    AU.Counts{1,AU.colLocation}(AU.rowLocation) = AU.Counts{1,AU.colLocation}(AU.rowLocation) + 1;
+					% Check the key column for the value with maximum count
+					[AU.maxCount,AU.rowLocation] = max(AU.Counts{1,AU.colLocation});
+					% Update uniqueCounts for that key
+					AU.uniqueCounts(AU.colLocation) = AU.maxCount;
+					% Update uniquePatterns with max count
+					AU.uniquePatterns(AU.colLocation,:) = [xSMPrevious xSM];
+                else
+                    % Add value and initialize count (1) to existing key
+                    AU.inputHistory{1,AU.colLocation} = [AU.inputHistory{1,AU.colLocation}; xSMPrevious xSM];
+                    AU.Counts{1,AU.colLocation} = [AU.Counts{1,AU.colLocation}; 1];
+                end
+            else
+               % Add new key and value to inputHistory and uniquePatterns
+               AU.inputHistory{1,size(AU.inputHistory,2)+1} = [xSMPrevious xSM];
+               AU.uniquePatterns = [AU.uniquePatterns; xSMPrevious xSM];
+               % Initialize counts
+               AU.Counts{1,size(AU.Counts,2)+1} = 1;
+               AU.uniqueCounts = [AU.uniqueCounts; 1];
+            end
+        elseif automatization_flag && iteration == 2
+            % Initialize inputHistory, uniquePatterns and counts
+            AU.inputHistory{1} = [xSMPrevious xSM];
+            AU.uniquePatterns = [xSMPrevious xSM];
+            AU.Counts{1} = 1;
+            AU.uniqueCounts = 1;
+        else
+            % Do nothing
+        end
         
         %Can we reconstruct the input by inverting the process? This is
         %just for sanity check. It is NOT used for training the spatial
@@ -57,7 +100,9 @@ if learnFlag
         if (rError ~= 0)
             fprintf(1, '\n (Non zero reconstruction error: %d bits) - ignore.', rError);
         end
-    
+        
+        xSMPrevious = xSM;
+        iteration = iteration + 1;
     end
     fprintf(1, '\n Learning sparse distributed representations using spatial pooling...done.');
 
@@ -65,7 +110,7 @@ if learnFlag
 else
     load (learntDataFile);
 end
-  
+
 % Initialize plot areas
 close all; 
 if displayFlag
@@ -73,207 +118,58 @@ if displayFlag
    % h2 = figure; set(h2, 'Position', [1000, 10000, 700, 1000]);
     
    h = figure; set(h, 'Position', [10, 10000, 1400, 1000]);
-   subplot(3,2,1);    
+   subplot(3,2,1);
+   
+    
 end
 
 
 %% Setup arrays
 predictions = zeros(3, data.N); % initialize array allocaton -- faster on matlab
-SM.inputPrevious = zeros(SM.N, 1);
+SM.inputPrevious = zeros(1,SM.N);
 data.inputCodes = [];
 data.inputSDR = [];
-SP.boost = ones (SM.N, 1);
-%AU.inputHistory = zeros(1,(2*SM.N));
-
+SP.boost = ones (SM.N, 1); 
 % no boosting in spatial pooler as it is being run in a non-learning mode
-% next. 
+% next
 
 
-fprintf('\n Running input of length %d through sequence memory to detect anomaly...', data.N);
+fprintf('\n Running input of length %d through attention to detect anomaly...', data.N);
 
 %% Iterate through the input data and feed through the spatial pooler, sequence memory and temporal pooler, as needed.
 
+time = datetime;   % Used to calculate the execution time.
 iteration = 1;
-x = [];
-automatization = 0;
-automatizationunit = [];
-AU.index = [];
-lol = [];
-
-load (sprintf('Output/AUIndex_%s.mat', outFile));
+SM.input = [];
+SM.inputNext = [];
+anomalyScores = ones(1,data.N);
+AU.access_previous = 0;
+AU.access = [];
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
-    %x = [];
-    if ~any(x)
+    if ~any(SM.input)
+        %% [ToDo: Will be processed through 'SPOutput' function]
+        %% [ToDo: optimize processing the SM.input by eliminating the for loop]
+        x = [];
         for  i=1:length(data.fields)
             j = data.fields(i);
             x = [x data.code{j}(data.value{j}(iteration),:)];
         end
+        
+        SM.input = spatialPooler (x, false, displayFlag);
+
+        data.inputCodes = [data.inputCodes; x]; 
+        data.inputSDR = [data.inputSDR; SM.input];
+
+        % stores sequence of input to spatial pooler. This is used to
+        % visualize the predicted vectors 
     end
-    SM.input = spatialPooler (x, false, displayFlag);
-      
-    %% Collects encoded events for statistical analisis to implement AU
-    %inputSM(iteration,:) = SM.input;
-    %save (sprintf('Output/inputSM_%s.mat', outFile),'inputSM'); 
-    %%
+
+    % Check for the key
+    attention (iteration, trN, learnFlag, displayFlag, automatization_flag, temporal_pooling_flag);
     
-    data.inputCodes = [data.inputCodes; x]; 
-    data.inputSDR = [data.inputSDR; SM.input];
-    
-    % stores sequence of input to spatial pooler. This is used to
-    % visualize the predicted vectors 
-    
-    %% AU
-     if ismember(iteration-1,[20,294,296,491,601,603,759])
-         lol = [lol; SM.inputPrevious SM.input];
-         %fprintf("\nWhy is not printing\n")
-     end
-    
-    
-    if iteration < data.N
-        AU.tolerance = 0;
-        if ismember(iteration+1,indices)
-            automatizationunit = [automatizationunit;
-                                  SM.inputPrevious SM.input];
-            predictedInput = logical(sum(SM.cellPredicted));
-
-            anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-
-            %% Run the input through Sequence Memory (SM) module to compute the active
-            % cells in SM and also the predictions for the next time instant.
-            sequenceMemory (learnFlag);
-
-            %%
-            SM.inputPrevious = SM.input;
-            SM.cellActivePrevious = SM.cellActive;
-            SM.cellLearnPrevious = SM.cellLearn; 
-
-            iteration = iteration + 1;
-            x = [];
-        end
-        if any(automatizationunit)
-            AU.index = ismember(automatizationunit(:,1:size(SM.input,2)),SM.input,'rows');
-        end
-        if any(AU.index)
-            %AU.index = ismember(automatizationunit(:,1:size(SM.input,2)),SM.input,'rows');
-            AU.predictedInput = automatizationunit(find(AU.index,1),:);
-            %^fprintf ("automatizationunit: %d \n",size(automatizationunit));
-            if any(AU.predictedInput)
-            %% Compute anomaly score 
-            % based on what was predicted as the next expected sequence memory
-            % module input at last time instant. (Note: we did experiment with
-            % defining anomaly based on reconstructed spatial pooler input
-            % predicted signal, but it did not work well.
-            %fprintf('AU.predictedInput es diferente de 0');
-                AU.anomalyScore = 0;
-                x = [];
-                for  i=1:length(data.fields)
-                    j = data.fields(i);
-                    x = [x data.code{j}(data.value{j}(iteration+1),:)];
-                end
-                SM.input = spatialPooler (x, false, displayFlag);
-
-                data.inputCodes = [data.inputCodes; x]; 
-                data.inputSDR = [data.inputSDR; SM.input];
-                %fprintf ("automatizationunit: %d \n",size(AU.predictedInput));
-                AU.anomalyScore = 1 - nnz(AU.predictedInput((size(SM.input,2)+1):size(AU.predictedInput,2)) & SM.input)/nnz(SM.input);
-
-                if AU.anomalyScore == AU.tolerance
-                    anomalyScores (iteration+1) = AU.anomalyScore;
-                    automatization = automatization + 1;
-                    fprintf ("Automatization Access: %d \n",automatization);
-                    iteration = iteration + 2;
-                    x = [];
-                    SM.inputPrevious = SM.input;
-                else
-                    predictedInput = logical(sum(SM.cellPredicted));
-
-                    anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-
-                    %% Run the input through Sequence Memory (SM) module to compute the active
-                    % cells in SM and also the predictions for the next time instant.
-                    sequenceMemory (learnFlag);
-
-
-                    %%
-                    SM.inputPrevious = SM.input;
-                    SM.cellActivePrevious = SM.cellActive;
-                    SM.cellLearnPrevious = SM.cellLearn; 
-
-                    iteration = iteration + 1;
-                    x = [];
-                end
-            else
-                predictedInput = logical(sum(SM.cellPredicted));
-
-                anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-
-                %% Run the input through Sequence Memory (SM) module to compute the active
-                % cells in SM and also the predictions for the next time instant.
-                sequenceMemory (learnFlag);
-
-
-                %%
-                SM.inputPrevious = SM.input;
-                SM.cellActivePrevious = SM.cellActive;
-                SM.cellLearnPrevious = SM.cellLearn; 
-
-                iteration = iteration + 1;
-                x = [];
-            end
-        else
-            %fprintf('AU.predictedInput es el conjunto vacio');
-
-            predictedInput = logical(sum(SM.cellPredicted));
-
-            anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-
-            %% Run the input through Sequence Memory (SM) module to compute the active
-            % cells in SM and also the predictions for the next time instant.
-            sequenceMemory (learnFlag);
-            
-            
-            %%
-            SM.inputPrevious = SM.input;
-            SM.cellActivePrevious = SM.cellActive;
-            SM.cellLearnPrevious = SM.cellLearn; 
-            
-            iteration = iteration + 1;
-            x = [];
-        end
-    else
-        %fprintf('AU.predictedInput es el conjunto vacio');
-
-        predictedInput = logical(sum(SM.cellPredicted));
-
-        anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
-
-        %% Run the input through Sequence Memory (SM) module to compute the active
-        % cells in SM and also the predictions for the next time instant.
-        sequenceMemory (learnFlag);
-
-
-        %%
-        SM.inputPrevious = SM.input;
-        SM.cellActivePrevious = SM.cellActive;
-        SM.cellLearnPrevious = SM.cellLearn; 
-
-        iteration = iteration + 1;
-        x = [];
-    end
-    
-    %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
-    %     if (iteration > 150)
-    %        perform only after some iterations -- pooling makes sense over
-    %        a period of time.
-    %          (true, displayFlag);
-    %         TP.unionSDRhistory (mod(iteration-1, size(TP.unionSDRhistory, 1))+1, :) =  TP.unionSDR;
-    %
-    %     end;
-    %% This part of the code is just for display of variables and plots/figures
-    
-    
+    %% This part of the code is just for display of variables and plots/figures    
     if (displayFlag)
         
         if (iteration > 2)
@@ -297,11 +193,15 @@ while iteration < (data.N + 1)
     end
     
     
-   
+    SM.inputPrevious = SM.input;
+    SM.input = SM.inputNext;
+    SM.inputNext = [];
+    %%
+    SM.cellActivePrevious = SM.cellActive;
+    SM.cellLearnPrevious = SM.cellLearn;
+    iteration = iteration + 1;  
 end
-
-%save (sprintf('Output/AU.ocurrences_%s.mat', outFile),'l');
-
+fprintf ('\nProcessing Time is: %s\n',diff([time datetime]));
 fprintf('\n Running input of length %d through sequence memory to detect anomaly...done', data.N);
 
 % Uncomment this if you want to visualize Temporal Pooler output
@@ -318,8 +218,3 @@ else
         'SM', 'SP', 'data', 'anomalyScores', 'predictions',...
         '-v7.3');
 end
-
-
-
-
-
