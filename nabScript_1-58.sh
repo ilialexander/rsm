@@ -1,15 +1,16 @@
 #!/bin/bash
-#SBATCH --job-name=matlabHTM+PreAU_1-58
+#SBATCH --partition=bgfsqdr
+#SBATCH --job-name=matlabHTM+AU_1-58
 #SBATCH --time=24:00:00
-#SBATCH --output=Output/matlabHTMPreAU.%j
-#SBATCH --ntasks=8
-#SBATCH --mem=16384
+#SBATCH --output=Output/matlabHTMAU.%j
+#SBATCH --ntasks=4
+#SBATCH --mem=8192
 
-module load apps/matlab/r2018b
+module load apps/matlab/r2019a
 
 date
 
-matlab -nodisplay -nosplash -r "run('runNABPreAU(1,58,false,true)')"
+matlab -nodisplay -nosplash -r "run('runNAB(1,58,false,true,true,false)')"
 
 date
 

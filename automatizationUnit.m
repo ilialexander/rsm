@@ -14,9 +14,6 @@ function automatizationUnit ()
 
 global SM AU
 
-%% [ToDo: Change all variable name styles from AU.input_history_counts to AU.input_history_counts or AU.input_history_counts]
-%% [ToDo: Change variable name from AU.input_history_counts to AU.input_history_counts]
-
 if AU.access
     % Increase count of <key, value> pair
     AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;

@@ -1,4 +1,9 @@
-function runNAB (startFile, endFile, displayFlag, createModelFlag, automatization_flag, temporal_pooling_flag)
+startFile = 1;
+endFile = 5;
+displayFlag = false;
+createModelFlag = true;
+automatization_flag = true;
+temporal_pooling_flag = false;
 time = datetime;
 % This function through the entore NAB dataset
 %
@@ -188,4 +193,4 @@ htmau_timing_dataset(i+1) = diff([time datetime]);
 save (sprintf('time_htmau.mat'),'htmau_timing_dataset','-append');
 fprintf ('\nTotal Processing Time is: %s\n',htmau_timing_dataset(i+1));
 
-exit
+%exit

@@ -138,14 +138,14 @@ fprintf('\n Running input of length %d through attention to detect anomaly...', 
 
 %% Iterate through the input data and feed through the spatial pooler, sequence memory and temporal pooler, as needed.
 
-time = datetime;   % Used to calculate the execution time.
+%time = datetime;   % Used to calculate the execution time.
 iteration = 1;
 SM.input = [];
 SM.inputNext = [];
 anomalyScores = ones(1,data.N);
 AU.access_previous = 0;
 AU.access = [];
-
+time_per_dataset = datetime;
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
     if ~any(SM.input)
@@ -201,7 +201,23 @@ while iteration < (data.N + 1)
     SM.cellLearnPrevious = SM.cellLearn;
     iteration = iteration + 1;  
 end
-fprintf ('\nProcessing Time is: %s\n',diff([time datetime]));
+
+load htmau/time_htmau.mat;
+
+if (htmau_time_notrn == 0)
+    htmau_time_notrn = diff([time_per_dataset datetime]);
+    save (sprintf('time_htmau.mat'),'htmau_time_notrn');
+else
+    htmau_time_notrn(size(htmau_time_notrn,2)+1) = diff([time_per_dataset datetime]);
+    fprintf ('\nThe processing Time withoug trainig is: %s\n',htmau_time_notrn(size(htmau_time_notrn,2)));
+    save (sprintf('time_htmau.mat'),'htmau_time_notrn','-append');
+end
+
+% htmau_no_trn_timing(i) = diff([time_per_dataset datetime]);
+% fprintf ('\nThe processing Time withoug trainig is: %s\n',htmau_no_trn_timing(i));
+% save (sprintf('timimg_no_trn_htmau.mat'),'htmau_no_trn_timing');
+
+%fprintf ('\nProcessing Time is: %s\n',diff([time datetime]));
 fprintf('\n Running input of length %d through sequence memory to detect anomaly...done', data.N);
 
 % Uncomment this if you want to visualize Temporal Pooler output
