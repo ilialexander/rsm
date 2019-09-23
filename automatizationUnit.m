@@ -25,12 +25,7 @@ elseif AU.column_location
         % Increase count of <key, value> pair
         AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;
         % Check the key column for the value with maximum count
-        tic
         [max_count,AU.row_location] = max(AU.input_history_counts{1,AU.column_location});
-        toc
-        tic
-        
-        
         % Update unique_pairs_counts for that key
         AU.unique_pairs_counts(AU.column_location) = max_count;
         % Update unique_pairs with max count
