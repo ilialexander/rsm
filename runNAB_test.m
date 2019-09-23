@@ -1,5 +1,5 @@
 startFile = 1;
-endFile = 5;
+endFile = 2;
 displayFlag = false;
 createModelFlag = true;
 automatization_flag = true;

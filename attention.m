@@ -22,8 +22,10 @@ function attention (iteration,trN,learnFlag,displayFlag, automatization_flag, te
 global SM TP AU data anomalyScores
 
 % Invokes AU
+
 if automatization_flag
-    [~,AU.column_location] = ismember(SM.input,AU.unique_pairs(:,1:(size(SM.input,2))),'row');
+    index=all(bsxfun(@eq,SM.input,AU.unique_pairs(:,1:(size(SM.input,2)))),2);
+    AU.column_location = find(index,1,'last');
 else
     AU.column_location = 0;
 end
@@ -31,7 +33,7 @@ end
 % (iteration>trN) prevents the AU from predicting on training data because it was built with this data in the Spatial Pooler training
 % AU.column_location is non-zero when it finds a key in the AU.unique_pairs (this key corresponds to a first-order-sequence pair)
 
-if AU.column_location && (iteration>trN) && (iteration<data.N)
+if AU.column_location & (iteration>trN) & (iteration<data.N)
     %% Get the next input to validate AU prediction.
     x = [];
     for  i=1:length(data.fields)
@@ -42,10 +44,9 @@ if AU.column_location && (iteration>trN) && (iteration<data.N)
     data.inputCodes = [data.inputCodes; x]; 
     data.inputSDR = [data.inputSDR; SM.inputNext];
 
-    % check if value exist in input_history
-	% AU.row_location is used in the automatizationUnit
-    [~,AU.row_location] = ismember(SM.inputNext,AU.input_history{1,AU.column_location}(:,(size(SM.inputNext,2)+1):size(AU.unique_pairs,2)),'row');
-
+    index=all(bsxfun(@eq,SM.inputNext,AU.input_history{1,AU.column_location}(:,(size(SM.inputNext,2)+1):size(AU.unique_pairs,2))),2);
+    AU.row_location = find(index,1,'last');
+    
     % Compare AU prediction with next input
     AU.access = isequal(AU.unique_pairs(AU.column_location,(size(SM.input,2)+1):size(AU.unique_pairs,2)), SM.inputNext);
     if AU.access

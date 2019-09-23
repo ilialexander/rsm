@@ -55,11 +55,11 @@ if learnFlag
 
         % train the Automatization Unit (AU)
         if automatization_flag && (iteration > 2)
-            % check if the key is in the AU
-            [~,AU.column_location] = ismember(xSMPrevious,AU.unique_pairs(:,1:size(xSMPrevious,2)),'row');
+            index=all(bsxfun(@eq,xSMPrevious,AU.unique_pairs(:,1:size(xSMPrevious,2))),2);
+            AU.column_location = find(index,1,'last');
             if AU.column_location
-                % check if the corresponding value exist
-                [~,AU.row_location] = ismember(xSM,AU.input_history{1,AU.column_location}(:,(size(xSM,2)+1):size(AU.unique_pairs,2)),'row');
+                index=all(bsxfun(@eq,xSM,AU.input_history{1,AU.column_location}(:,(size(xSM,2)+1):size(AU.unique_pairs,2))),2);
+                AU.row_location = find(index,1,'last');
                 if AU.row_location
                     % Increase count of existing <key, value> pair
                     AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;
@@ -202,10 +202,11 @@ while iteration < (data.N + 1)
     iteration = iteration + 1;  
 end
 
-load htmau/time_htmau.mat;
+load time_htmau.mat;
 
 if (htmau_time_notrn == 0)
     htmau_time_notrn = diff([time_per_dataset datetime]);
+    fprintf ('\nThe processing Time withoug trainig is: %s\n',htmau_time_notrn(size(htmau_time_notrn,2)));
     save (sprintf('time_htmau.mat'),'htmau_time_notrn');
 else
     htmau_time_notrn(size(htmau_time_notrn,2)+1) = diff([time_per_dataset datetime]);
