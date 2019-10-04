@@ -59,8 +59,12 @@ else
 end
 %% find the active columns without a learnCell state set -- activeCols
 %[~, lc_cols]  = find(SM.predictedActiveCells(u));
-[~, x] = setdiff(activeCols, lc_cols); % pointers to the columns IDs not in lc_cols 
-activeCols = activeCols(x); % removes the columns with learnCell already set
+[~, c_num] = ind2sub([SM.M, SM.N], lc_cols);
+[~, c_num_i] = unique(c_num);
+c_num = c_num(c_num_i);
+[~, x] = setdiff(activeCols, c_num);
+% [~, x] = setdiff(activeCols, lc_cols);
+activeCols = activeCols(x); % removed some columns with learnCell already set
 
 %% Iterate through the remaining columns selecting a single learnState cell in each
 n = length(activeCols);
