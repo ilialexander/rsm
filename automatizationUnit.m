@@ -25,23 +25,12 @@ elseif AU.column_location
         % Increase count of <key, value> pair
         AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;
         % Check the key column for the value with maximum count
-%         fprintf("\nOLD")
-%         tic
-%         [max_count,AU.row_location] = max(AU.input_history_counts{1,AU.column_location});
-%         % Update unique_pairs_counts for that key
-%         AU.unique_pairs_counts(AU.column_location) = max_count;
-%         % Update unique_pairs with max count
-%         AU.unique_pairs(AU.column_location,:) = [SM.input SM.inputNext];
-%         toc
-%         fprintf("\nNEW")
-%         tic
         if AU.input_history_counts{1,AU.column_location}(AU.row_location) > AU.unique_pairs_counts(AU.column_location)
             % Update unique_pairs_counts for that key
             AU.unique_pairs_counts(AU.column_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location);
             % Update unique_pairs with max count
             AU.unique_pairs(AU.column_location,:) = [SM.input SM.inputNext];
         end
-%         toc
     else
         % Adds <key, value> pair to existing 'key' column and initializes count.
         AU.input_history{1,AU.column_location} = [AU.input_history{1,AU.column_location}; SM.input SM.inputNext];
