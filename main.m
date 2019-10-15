@@ -64,11 +64,23 @@ if learnFlag
                     % Increase count of existing <key, value> pair
                     AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;
 					% Check the key column for the value with maximum count
-					[max_count,AU.row_location] = max(AU.input_history_counts{1,AU.column_location});
-					% Update unique_pairs_counts for that key
-					AU.unique_pairs_counts(AU.column_location) = max_count;
-					% Update unique_pairs with max count
-					AU.unique_pairs(AU.column_location,:) = [xSMPrevious xSM];
+%                     fprintf("\nOLD")
+%                     tic
+% 					[max_count,AU.row_location] = max(AU.input_history_counts{1,AU.column_location});
+% 					% Update unique_pairs_counts for that key
+% 					AU.unique_pairs_counts(AU.column_location) = max_count;
+% 					% Update unique_pairs with max count
+% 					AU.unique_pairs(AU.column_location,:) = [xSMPrevious xSM];
+%                     toc
+%                     fprintf("\nNEW")
+%                     tic
+                    if AU.input_history_counts{1,AU.column_location}(AU.row_location) > AU.unique_pairs_counts(AU.column_location)
+                        % Update unique_pairs_counts for that key
+                        AU.unique_pairs_counts(AU.column_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location);
+                        % Update unique_pairs with max count
+                        AU.unique_pairs(AU.column_location,:) = [xSMPrevious xSM];
+                    end
+%                     toc
                 else
                     % Add value and initialize count (1) to existing key
                     AU.input_history{1,AU.column_location} = [AU.input_history{1,AU.column_location}; xSMPrevious xSM];
