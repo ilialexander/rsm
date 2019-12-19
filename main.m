@@ -27,7 +27,11 @@ if learnFlag
   %% Encode Input into Binary Semantic Representation 
 
    SP.width = 21; %21; % number of bits that are one for each state in the input.
-   data = encoderNAB (inFile, SP.width);
+   if inFile(1:strfind(inFile,'/')-1) == "Pseudo_periodic_synthetic"
+       data = encoderNAB_synthetic (inFile, SP.width);
+   else
+       data = encoderNAB (inFile, SP.width);
+   end
   
     
    %% initialize parameters and data structures for spatial pooler (SP), 
@@ -203,17 +207,10 @@ while iteration < (data.N + 1)
     iteration = iteration + 1;  
 end
 
-load time_htmau.mat;
+htmau_time_notrn = diff([time_per_dataset datetime]);
+fprintf ('\nThe processing Time withoug trainig is: %s\n',htmau_time_notrn);
+save (sprintf('Output/time_SMRM_%s.mat',inFile(strfind(inFile,'/')+1:strfind(inFile,'.')-1)),'htmau_time_notrn');
 
-if (htmau_time_notrn == 0)
-    htmau_time_notrn = diff([time_per_dataset datetime]);
-    fprintf ('\nThe processing Time withoug trainig is: %s\n',htmau_time_notrn(size(htmau_time_notrn,2)));
-    save (sprintf('time_htmau.mat'),'htmau_time_notrn');
-else
-    htmau_time_notrn(size(htmau_time_notrn,2)+1) = diff([time_per_dataset datetime]);
-    fprintf ('\nThe processing Time withoug trainig is: %s\n',htmau_time_notrn(size(htmau_time_notrn,2)));
-    save (sprintf('time_htmau.mat'),'htmau_time_notrn','-append');
-end
 
 % htmau_no_trn_timing(i) = diff([time_per_dataset datetime]);
 % fprintf ('\nThe processing Time withoug trainig is: %s\n',htmau_no_trn_timing(i));
