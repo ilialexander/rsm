@@ -1,2 +1,7 @@
 #ignore Output directory
 Output
+
+#ignore NAB_input_csv_files
+NAB_input_csv_files
+
+#
