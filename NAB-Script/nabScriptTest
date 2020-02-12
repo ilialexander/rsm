@@ -1,6 +1,0 @@
-#!/bin/bash
-
-module add apps/matlab/r2018b
-nice -n 10 matlab -nodisplay -nosplash -nodesktop -r "run('runNAB(1,5,true,true)')" 
-
-
