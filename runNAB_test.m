@@ -1,5 +1,5 @@
-startFile = 1;
-endFile = 2;
+startFile = 74;
+endFile = 77;
 displayFlag = false;
 createModelFlag = true;
 automatization_flag = true;
@@ -73,7 +73,7 @@ for i=startFile:endFile
 
     %% Create Model
     if createModelFlag
-        main  (file_name{i}, name, displayFlag, true, 'none', automatization_flag, temporal_pooling_flag);
+        main  (file_name, name, displayFlag, true, 'none', automatization_flag, temporal_pooling_flag);
     end
     
     %% Time to process

@@ -27,13 +27,8 @@ if learnFlag
   %% Encode Input into Binary Semantic Representation 
 
    SP.width = 21; %21; % number of bits that are one for each state in the input.
-   if inFile(1:strfind(inFile,'/')-1) == "Pseudo_periodic_synthetic"
-       data = encoderNAB_synthetic (inFile, SP.width);
-   else
-       data = encoderNAB (inFile, SP.width);
-   end
-  
-    
+   data = encoderNAB (inFile, SP.width);
+
    %% initialize parameters and data structures for spatial pooler (SP), 
    % sequence memory (SM), and temporal pooler (TP). 
    initialize;

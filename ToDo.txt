@@ -1,14 +1,7 @@
 To Do List for AU and possible improvements
-1. Checkout branch sparseAU
-2. Convert AU to Sparse
-3. Enhance overall Performance of system with AU
-3. ToDo: optimize processing the SM.input by eliminating the for loop
-3. Update AU patterns in batches
-3. Study Temporal Pooler permanence with AU
-4. Save Spatial pooler for optimal case
-5. run for 1000 times for average and scores
-
-
+1. Update AU patterns in batches
+2. Study Temporal Pooler permanence with AU
+3. Save Spatial pooler for optimal case
 
 Proposed Ideas
 1. Checking Anomalies for five entries at a time
