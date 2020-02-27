@@ -146,6 +146,10 @@ anomalyScores = ones(1,data.N);
 AU.access_previous = 0;
 AU.access = [];
 time_per_dataset = datetime;
+
+SM.every_prediction = zeros(data.N,2048);
+AU.time = zeros(1,data.N);
+
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
     if ~any(SM.input)
@@ -221,7 +225,7 @@ fprintf('\n Running input of length %d through sequence memory to detect anomaly
 %% Save data
 if learnFlag
     save (sprintf('Output/HTM_SM_%s.mat', outFile), ...
-        'SM', 'SP', 'data', 'anomalyScores', 'predictions',...
+        'SM', 'SP', 'AU', 'data', 'anomalyScores', 'predictions',...
         '-v7.3');
 else
     save (sprintf('Output/HTM_SM_%s_L.mat', outFile), ...

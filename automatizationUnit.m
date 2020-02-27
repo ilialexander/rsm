@@ -15,12 +15,16 @@ function automatizationUnit ()
 global SM AU
 
 if AU.access
+    index=all(bsxfun(@eq,SM.inputNext,AU.input_history{1,AU.column_location}(:,(size(SM.inputNext,2)+1):size(AU.unique_pairs,2))),2);
+    AU.row_location = find(index,1,'last');
     % Increase count of <key, value> pair
     AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;
     % Update unique_pairs_counts for that key
     AU.unique_pairs_counts(AU.column_location) = AU.unique_pairs_counts(AU.column_location) + 1;
 elseif AU.column_location
 	% checks if value exist in 'AU.input_history'
+    index=all(bsxfun(@eq,SM.inputNext,AU.input_history{1,AU.column_location}(:,(size(SM.inputNext,2)+1):size(AU.unique_pairs,2))),2);
+    AU.row_location = find(index,1,'last');
     if AU.row_location
         % Increase count of <key, value> pair
         AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;

@@ -23,9 +23,13 @@ global SM TP AU data anomalyScores
 
 % Invokes AU
 
+% time_rm = datetime;
+
 if automatization_flag
+    %tic;
     index=all(bsxfun(@eq,SM.input,AU.unique_pairs(:,1:(size(SM.input,2)))),2);
     AU.column_location = find(index,1,'last');
+    %col_loc_toc = toc; 
 else
     AU.column_location = 0;
 end
@@ -43,9 +47,6 @@ if AU.column_location & (iteration>trN) & (iteration<data.N)
     SM.inputNext = spatialPooler (x, false, displayFlag);
     data.inputCodes = [data.inputCodes; x]; 
     data.inputSDR = [data.inputSDR; SM.inputNext];
-
-    index=all(bsxfun(@eq,SM.inputNext,AU.input_history{1,AU.column_location}(:,(size(SM.inputNext,2)+1):size(AU.unique_pairs,2))),2);
-    AU.row_location = find(index,1,'last');
     
     % Compare AU prediction with next input
     AU.access = isequal(AU.unique_pairs(AU.column_location,(size(SM.input,2)+1):size(AU.unique_pairs,2)), SM.inputNext);
@@ -54,6 +55,7 @@ if AU.column_location & (iteration>trN) & (iteration<data.N)
             % Prevents overriding the score calculated in the AU
         else
             predictedInput = logical(sum(SM.cellPredicted));
+            SM.every_prediction(iteration,:) = predictedInput;
             anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
         end
 
@@ -63,14 +65,19 @@ if AU.column_location & (iteration>trN) & (iteration<data.N)
 			sequenceMemory (true,learnFlag,false);
         end
         anomalyScores (iteration+1) = 0;
+        SM.every_prediction(iteration+1,:) = AU.unique_pairs(AU.column_location,(size(SM.input,2)+1):size(AU.unique_pairs,2));
+
         %% AU
+        %tic;
         automatizationUnit ();
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearn(:) = 0;
         SM.cellLearn(:,SM.inputNext) = 1;
         updateSynapses();
+        %rm_toc = toc;
+        %AU.time(iteration+1) = rm_toc+col_loc_toc;
         AU.access = 0;
-        AU.access_previous = 1; % flag to ensure propper HTM-AU Sync
+        AU.access_previous = 1; % flag to ensure propper HTM-AU Sync        
     else % if AU is not accessed
         if AU.access_previous == 1
             % Prevents overriding the score calculated in the AU
@@ -81,11 +88,14 @@ if AU.column_location & (iteration>trN) & (iteration<data.N)
 			% based on what was predicted as the next expected sequence memory
 			% module input at last time instant.
             predictedInput = logical(sum(SM.cellPredicted));
+            SM.every_prediction(iteration,:) = predictedInput';
             anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
 
             %% Run the input through Sequence Memory (SM) module to compute the active
             % cells in SM and also the predictions for the next time instant.
+            %tic;
             sequenceMemory (true,learnFlag,true);
+            %AU.time(iteration) = toc;
 			
             if automatization_flag
                 %% AU
@@ -114,12 +124,16 @@ else
             % Prevents overriding the score calculated in the AU
         else
             predictedInput = logical(sum(SM.cellPredicted));
+            SM.every_prediction(iteration,:) = predictedInput';
             anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
         end
 
         %% Run the input through Sequence Memory (SM) module to compute the active
         % cells in SM and also the predictions for the next time instant.
+        %tic;
         sequenceMemory (true,learnFlag,true);
+        %AU.time(iteration) = toc;
+
         
         %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
         if temporal_pooling_flag && (iteration > trN)

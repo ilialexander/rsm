@@ -195,3 +195,5 @@ end
 %     %     fprintf(1, '\n%s', fileNames{i(j)});
 %     % end
 % end
+
+exit
