@@ -1,4 +1,4 @@
-function markPredictiveStates ()
+function SM = markPredictiveStates (SM)
 % The calculates the predictive state for each cell. A cell will turn on its predictive state
 % output if one of its segments becomes active, i.e. if enough of its lateral inputs are currently active due
 % to feed-forward input. In this case, the cell queues up the following changes: reinforcement of the
@@ -17,7 +17,6 @@ function markPredictiveStates ()
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 %
-global  SM;
 
 %% Initialize the active and Positive synapse and dendrite to NULL sets
 %

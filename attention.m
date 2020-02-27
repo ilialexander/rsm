@@ -1,14 +1,15 @@
-function attention (iteration,trN,learnFlag,displayFlag, automatization_flag, temporal_pooling_flag)
-%% This function is supervisor/control unit between Sequence Memory, Automatization and Temporal Pooler.
-% It always checks with the Automatization Unit (AU) before computing through the Sequence Memory
+function attention (iteration,trN,learnFlag,displayFlag, reflex_memory_flag, temporal_pooling_flag)
+%% This function is supervisor/control unit between Sequence Memory, Reflex Memory and Temporal Pooler.
+% It always checks with the Reflex Memory (RM) before computing through the Sequence Memory
 % iteration: is the current instance of data that is being processed
 % trN: is the amount of data points selected for training
 % learnFlag: invokes the learning of the Sequence Memory 
 % displayFlag: shows animation of cells (turning on, bursting and predicting)
-% automatization_flag: invokes the Automatization Unit
+% reflex_memory_flag: invokes the Reflex Memory
 % temporal_pooling_flag: invokes the Temporal Pool
 
-% Note: The Temporal pooler is not fully implemented if invoked with Automatization
+% Note: The Temporal pooler is not fully implemented if invoked with the
+% Reflex Memory
 
 %% Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA
 % This work is licensed under the Attribution-NonCommercial-ShareAlike 4.0 International License.
@@ -19,26 +20,26 @@ function attention (iteration,trN,learnFlag,displayFlag, automatization_flag, te
 %
 
 
-global SM TP AU data anomalyScores
+global SM TP RM data anomalyScores
 
-% Invokes AU
+% Invokes RM
 
 % time_rm = datetime;
 
-if automatization_flag
+if reflex_memory_flag
     %tic;
-    index=all(bsxfun(@eq,SM.input,AU.unique_pairs(:,1:(size(SM.input,2)))),2);
-    AU.column_location = find(index,1,'last');
+    index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:(size(SM.input,2)))),2);
+    RM.column_location = find(index,1,'last');
     %col_loc_toc = toc; 
 else
-    AU.column_location = 0;
+    RM.column_location = 0;
 end
 
-% (iteration>trN) prevents the AU from predicting on training data because it was built with this data in the Spatial Pooler training
-% AU.column_location is non-zero when it finds a key in the AU.unique_pairs (this key corresponds to a first-order-sequence pair)
+% (iteration>trN) prevents the RM from predicting on training data because it was built with this data in the Spatial Pooler training
+% RM.column_location is non-zero when it finds a key in the RM.unique_pairs (this key corresponds to a first-order-sequence pair)
 
-if AU.column_location & (iteration>trN) & (iteration<data.N)
-    %% Get the next input to validate AU prediction.
+if RM.column_location & (iteration>trN) & (iteration<data.N)
+    %% Get the next input to validate RM prediction.
     x = [];
     for  i=1:length(data.fields)
         j = data.fields(i);
@@ -48,41 +49,41 @@ if AU.column_location & (iteration>trN) & (iteration<data.N)
     data.inputCodes = [data.inputCodes; x]; 
     data.inputSDR = [data.inputSDR; SM.inputNext];
     
-    % Compare AU prediction with next input
-    AU.access = isequal(AU.unique_pairs(AU.column_location,(size(SM.input,2)+1):size(AU.unique_pairs,2)), SM.inputNext);
-    if AU.access
+    % Compare RM prediction with next input
+    RM.access = isequal(RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2)), SM.inputNext);
+    if RM.access
         if anomalyScores (iteration) == 0
-            % Prevents overriding the score calculated in the AU
+            % Prevents overriding the score calculated in the RM
         else
             predictedInput = logical(sum(SM.cellPredicted));
             SM.every_prediction(iteration,:) = predictedInput;
             anomalyScores (iteration) = 1 - nnz(predictedInput & SM.input)/nnz(SM.input);
         end
 
-        if AU.access_previous == 1
+        if RM.access_previous == 1
             % Sequence memory already learned in previous iteration
         else
-			sequenceMemory (true,learnFlag,false);
+			SM = sequenceMemory (SM, RM, true,learnFlag,false);
         end
         anomalyScores (iteration+1) = 0;
-        SM.every_prediction(iteration+1,:) = AU.unique_pairs(AU.column_location,(size(SM.input,2)+1):size(AU.unique_pairs,2));
+        SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2));
 
-        %% AU
+        %% RM
         %tic;
-        automatizationUnit ();
+        reflex_memory (SM,RM);
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearn(:) = 0;
         SM.cellLearn(:,SM.inputNext) = 1;
-        updateSynapses();
+        SM = updateSynapses (SM,RM);
         %rm_toc = toc;
-        %AU.time(iteration+1) = rm_toc+col_loc_toc;
-        AU.access = 0;
-        AU.access_previous = 1; % flag to ensure propper HTM-AU Sync        
-    else % if AU is not accessed
-        if AU.access_previous == 1
-            % Prevents overriding the score calculated in the AU
+        %RM.time(iteration+1) = rm_toc+col_loc_toc;
+        RM.access = 0;
+        RM.access_previous = 1; % flag to ensure propper HTM-RM Sync        
+    else % if RM is not accessed
+        if RM.access_previous == 1
+            % Prevents overriding the score calculated in the RM
             % Only used to predict next state
-            sequenceMemory (false,false,true);
+            SM = sequenceMemory (SM, RM, false,false,true);
         else
 			%% Compute anomaly score 
 			% based on what was predicted as the next expected sequence memory
@@ -94,12 +95,12 @@ if AU.column_location & (iteration>trN) & (iteration<data.N)
             %% Run the input through Sequence Memory (SM) module to compute the active
             % cells in SM and also the predictions for the next time instant.
             %tic;
-            sequenceMemory (true,learnFlag,true);
-            %AU.time(iteration) = toc;
+            SM = sequenceMemory (SM, RM, true,learnFlag,true);
+            %RM.time(iteration) = toc;
 			
-            if automatization_flag
-                %% AU
-                automatizationUnit ();
+            if reflex_memory_flag
+                %% RM
+                reflex_memory (SM,RM);
             end
 			
             %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
@@ -109,19 +110,19 @@ if AU.column_location & (iteration>trN) & (iteration<data.N)
                 TP.unionSDRhistory (mod(iteration-1, size(TP.unionSDRhistory, 1))+1, :) =  TP.unionSDR;
             end
         end
-        AU.access_previous = 0; % flag to ensure propper HTM-AU Sync
+        RM.access_previous = 0; % flag to ensure propper HTM-RM Sync
     end
 else
-    if AU.access_previous == 1
-        % Prevents overriding the score calculated in the AU
+    if RM.access_previous == 1
+        % Prevents overriding the score calculated in the RM
         % Predict next state
-        sequenceMemory (false,false,true);
+        SM = sequenceMemory (SM, RM, false,false,true);
     else
         %% Compute anomaly score 
         % based on what was predicted as the next expected sequence memory
         % module input at last time instant.
         if anomalyScores (iteration) == 0
-            % Prevents overriding the score calculated in the AU
+            % Prevents overriding the score calculated in the RM
         else
             predictedInput = logical(sum(SM.cellPredicted));
             SM.every_prediction(iteration,:) = predictedInput';
@@ -131,8 +132,8 @@ else
         %% Run the input through Sequence Memory (SM) module to compute the active
         % cells in SM and also the predictions for the next time instant.
         %tic;
-        sequenceMemory (true,learnFlag,true);
-        %AU.time(iteration) = toc;
+        SM = sequenceMemory (SM, RM, true,learnFlag,true);
+        %RM.time(iteration) = toc;
 
         
         %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
@@ -143,10 +144,10 @@ else
         end
 
         % Skips training data
-        if automatization_flag && (iteration > trN) && (iteration<data.N)
-            %% AU
-            automatizationUnit ();
+        if reflex_memory_flag && (iteration > trN) && (iteration<data.N)
+            %% RM
+            reflex_memory (SM,RM);
         end
     end
-    AU.access_previous = 0; % flag to ensure propper HTM-AU Sync
+    RM.access_previous = 0; % flag to ensure propper HTM-RM Sync
 end

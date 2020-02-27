@@ -1,4 +1,4 @@
-function anomalyScore = markActiveStates ()
+function SM = markActiveStates (SM)
 % Given the input (SM.input), this function (i) computes the active cells in the sequence memory array,
 % basically, all predicted cell in an active column (column with 1 as input) is active.
 % and all cells in an active column with no predicted cells are active; (ii) marks the appropriate outputs
@@ -31,10 +31,6 @@ function anomalyScore = markActiveStates ()
 %   1.  If new sequence, turn on "start cell" (the first one) for every active column
 %   2.  Otherwise, turn on any predicted cells in every active column
 %   3.  If no predicted cells in a column, turn on every cell in the column"
-
-
-
-global SM
 
 
 %% Find index (row and col) of the predicted cells, i.e. cells in polarized state as stored in the
@@ -81,7 +77,7 @@ uniqueCorrectColumns = unique(correctColumns);
 %% Compute anomaly score - differences of the ones in the input and the correctly predicted ones
 %% THIS CAN BE EXPERIMENTED WITH AND UPDATED
 
-anomalyScore = 1 - length (uniqueCorrectColumns)/length(columnInput);
+%anomalyScore = 1 - length (uniqueCorrectColumns)/length(columnInput);
 
 % The following uses the tip at http://floybix.github.io/2016/07/01/attempting-nab
 % Instead of the raw bursting rate, a delta anomaly score was calculated:
