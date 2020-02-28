@@ -1,4 +1,4 @@
-function reflex_memory (SM,RM)
+function RM = reflex_memory (SM,RM)
 % This function keeps a full history of all the inputs organized as first-order-sequence <key,value> pairs. Keeping a tallie of the frequency of each pair in 'AU.input_history_counts'.
 % Unique first-order-sequence <key,value> pairs are also saved in a separate array 'AU.unique_pairs' and updated with the maximum frequency pairs under the respective 'key'.
 % The maximum frequency count is also stored per each 'key' in 'AU.unique_pairs_counts'

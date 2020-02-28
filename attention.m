@@ -69,7 +69,7 @@ if any(RM.col_loc_index) & (iteration>trN) & (iteration<data.N)
 
         %% RM
         %tic;
-        reflex_memory (SM,RM);
+        RM = reflex_memory (SM,RM);
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearn(:) = 0;
         SM.cellLearn(:,SM.inputNext) = 1;
@@ -99,7 +99,7 @@ if any(RM.col_loc_index) & (iteration>trN) & (iteration<data.N)
 			
             if reflex_memory_flag
                 %% RM
-                reflex_memory (SM,RM);
+                RM = reflex_memory (SM,RM);
             end
 			
             %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
@@ -145,7 +145,7 @@ else
         % Skips training data
         if reflex_memory_flag && (iteration > trN) && (iteration<data.N)
             %% RM
-            reflex_memory (SM,RM);
+            RM = reflex_memory (SM,RM);
         end
     end
     RM.access_previous = 0; % flag to ensure propper HTM-RM Sync
