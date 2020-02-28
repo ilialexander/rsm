@@ -54,25 +54,23 @@ if learnFlag
 
         % train the Reflex Memory (RM)
         if reflex_memory_flag && (iteration > 2)
-            index=all(bsxfun(@eq,xSMPrevious,RM.unique_pairs(:,1:size(xSMPrevious,2))),2);
-            RM.column_location = find(index,1,'last');
-            if RM.column_location
-                index=all(bsxfun(@eq,xSM,RM.input_history{1,RM.column_location}(:,(size(xSM,2)+1):size(RM.unique_pairs,2))),2);
-                RM.row_location = find(index,1,'last');
-                if RM.row_location
+            RM.col_loc_index=all(bsxfun(@eq,xSMPrevious,RM.unique_pairs(:,1:size(xSMPrevious,2))),2);
+            if any(RM.col_loc_index)
+                RM.row_loc_index=all(bsxfun(@eq,xSM,RM.input_history{1,RM.col_loc_index}(:,(size(xSM,2)+1):size(RM.unique_pairs,2))),2);
+                if any(RM.row_loc_index)
                     % Increase count of existing <key, value> pair
-                    RM.input_history_counts{1,RM.column_location}(RM.row_location) = RM.input_history_counts{1,RM.column_location}(RM.row_location) + 1;
+                    RM.input_history_counts{1,RM.col_loc_index}(RM.row_loc_index) = RM.input_history_counts{1,RM.col_loc_index}(RM.row_loc_index) + 1;
 					% Check the key column for the value with maximum count
-                    if RM.input_history_counts{1,RM.column_location}(RM.row_location) > RM.unique_pairs_counts(RM.column_location)
+                    if RM.input_history_counts{1,RM.col_loc_index}(RM.row_loc_index) > RM.unique_pairs_counts(RM.col_loc_index)
                         % Update unique_pairs_counts for that key
-                        RM.unique_pairs_counts(RM.column_location) = RM.input_history_counts{1,RM.column_location}(RM.row_location);
+                        RM.unique_pairs_counts(RM.col_loc_index) = RM.input_history_counts{1,RM.col_loc_index}(RM.row_loc_index);
                         % Update unique_pairs with max count
-                        RM.unique_pairs(RM.column_location,:) = [xSMPrevious xSM];
+                        RM.unique_pairs(RM.col_loc_index,:) = [xSMPrevious xSM];
                     end
                 else
                     % Add value and initialize count (1) to existing key
-                    RM.input_history{1,RM.column_location} = [RM.input_history{1,RM.column_location}; xSMPrevious xSM];
-                    RM.input_history_counts{1,RM.column_location} = [RM.input_history_counts{1,RM.column_location}; 1];
+                    RM.input_history{1,RM.col_loc_index} = [RM.input_history{1,RM.col_loc_index}; xSMPrevious xSM];
+                    RM.input_history_counts{1,RM.col_loc_index} = [RM.input_history_counts{1,RM.col_loc_index}; 1];
                 end
             else
                % Add new key and value to input_history and unique_pairs

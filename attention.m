@@ -28,17 +28,16 @@ global SM TP RM data anomalyScores
 
 if reflex_memory_flag
     %tic;
-    index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:(size(SM.input,2)))),2);
-    RM.column_location = find(index,1,'last');
+    RM.col_loc_index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:(size(SM.input,2)))),2);
     %col_loc_toc = toc; 
 else
-    RM.column_location = 0;
+    RM.col_loc_index = 0;
 end
 
 % (iteration>trN) prevents the RM from predicting on training data because it was built with this data in the Spatial Pooler training
-% RM.column_location is non-zero when it finds a key in the RM.unique_pairs (this key corresponds to a first-order-sequence pair)
+% any(RM.col_loc_index) is non-zero when it holds a key in the RM.unique_pairs (this key corresponds to a first-order-sequence pair)
 
-if RM.column_location & (iteration>trN) & (iteration<data.N)
+if any(RM.col_loc_index) & (iteration>trN) & (iteration<data.N)
     %% Get the next input to validate RM prediction.
     x = [];
     for  i=1:length(data.fields)
@@ -50,7 +49,7 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
     data.inputSDR = [data.inputSDR; SM.inputNext];
     
     % Compare RM prediction with next input
-    RM.access = isequal(RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2)), SM.inputNext);
+    RM.access = isequal(RM.unique_pairs(RM.col_loc_index,(size(SM.input,2)+1):size(RM.unique_pairs,2)), SM.inputNext);
     if RM.access
         if anomalyScores (iteration) == 0
             % Prevents overriding the score calculated in the RM
@@ -66,7 +65,7 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
 			SM = sequenceMemory (SM, RM, true,learnFlag,false);
         end
         anomalyScores (iteration+1) = 0;
-        SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2));
+        SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.col_loc_index,(size(SM.input,2)+1):size(RM.unique_pairs,2));
 
         %% RM
         %tic;
