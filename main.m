@@ -1,4 +1,4 @@
-function main (inFile, outFile, displayFlag, learnFlag, learntDataFile, automatization_flag, temporal_pooling_flag)
+function main (inFile, outFile, displayFlag, learnFlag, learntDataFile, reflex_memory_flag, temporal_pooling_flag)
 % This is the main function that (i) sets up the parameters, (ii)
 % initializes the spatial pooler, and (iii) iterates through the data and
 % feed it through the spatial pooler and temporal memory modules.
@@ -21,7 +21,7 @@ function main (inFile, outFile, displayFlag, learnFlag, learntDataFile, automati
 %
 % on https://github.com/SudeepSarkar/matlabHTM
 
-global  SP SM TP AU data anomalyScores predictions
+global  SP SM TP RM data anomalyScores predictions
 
 if learnFlag
   %% Encode Input into Binary Semantic Representation 
@@ -52,42 +52,42 @@ if learnFlag
         % train the spatialPooler
         xSM = spatialPooler (x, true, false);
 
-        % train the Automatization Unit (AU)
-        if automatization_flag && (iteration > 2)
-            index=all(bsxfun(@eq,xSMPrevious,AU.unique_pairs(:,1:size(xSMPrevious,2))),2);
-            AU.column_location = find(index,1,'last');
-            if AU.column_location
-                index=all(bsxfun(@eq,xSM,AU.input_history{1,AU.column_location}(:,(size(xSM,2)+1):size(AU.unique_pairs,2))),2);
-                AU.row_location = find(index,1,'last');
-                if AU.row_location
+        % train the Reflex Memory (RM)
+        if reflex_memory_flag && (iteration > 2)
+            index=all(bsxfun(@eq,xSMPrevious,RM.unique_pairs(:,1:size(xSMPrevious,2))),2);
+            RM.column_location = find(index,1,'last');
+            if RM.column_location
+                index=all(bsxfun(@eq,xSM,RM.input_history{1,RM.column_location}(:,(size(xSM,2)+1):size(RM.unique_pairs,2))),2);
+                RM.row_location = find(index,1,'last');
+                if RM.row_location
                     % Increase count of existing <key, value> pair
-                    AU.input_history_counts{1,AU.column_location}(AU.row_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location) + 1;
+                    RM.input_history_counts{1,RM.column_location}(RM.row_location) = RM.input_history_counts{1,RM.column_location}(RM.row_location) + 1;
 					% Check the key column for the value with maximum count
-                    if AU.input_history_counts{1,AU.column_location}(AU.row_location) > AU.unique_pairs_counts(AU.column_location)
+                    if RM.input_history_counts{1,RM.column_location}(RM.row_location) > RM.unique_pairs_counts(RM.column_location)
                         % Update unique_pairs_counts for that key
-                        AU.unique_pairs_counts(AU.column_location) = AU.input_history_counts{1,AU.column_location}(AU.row_location);
+                        RM.unique_pairs_counts(RM.column_location) = RM.input_history_counts{1,RM.column_location}(RM.row_location);
                         % Update unique_pairs with max count
-                        AU.unique_pairs(AU.column_location,:) = [xSMPrevious xSM];
+                        RM.unique_pairs(RM.column_location,:) = [xSMPrevious xSM];
                     end
                 else
                     % Add value and initialize count (1) to existing key
-                    AU.input_history{1,AU.column_location} = [AU.input_history{1,AU.column_location}; xSMPrevious xSM];
-                    AU.input_history_counts{1,AU.column_location} = [AU.input_history_counts{1,AU.column_location}; 1];
+                    RM.input_history{1,RM.column_location} = [RM.input_history{1,RM.column_location}; xSMPrevious xSM];
+                    RM.input_history_counts{1,RM.column_location} = [RM.input_history_counts{1,RM.column_location}; 1];
                 end
             else
                % Add new key and value to input_history and unique_pairs
-               AU.input_history{1,size(AU.input_history,2)+1} = [xSMPrevious xSM];
-               AU.unique_pairs = [AU.unique_pairs; xSMPrevious xSM];
+               RM.input_history{1,size(RM.input_history,2)+1} = [xSMPrevious xSM];
+               RM.unique_pairs = [RM.unique_pairs; xSMPrevious xSM];
                % Initialize counts
-               AU.input_history_counts{1,size(AU.input_history_counts,2)+1} = 1;
-               AU.unique_pairs_counts = [AU.unique_pairs_counts; 1];
+               RM.input_history_counts{1,size(RM.input_history_counts,2)+1} = 1;
+               RM.unique_pairs_counts = [RM.unique_pairs_counts; 1];
             end
-        elseif automatization_flag && iteration == 2
+        elseif reflex_memory_flag && iteration == 2
             % Initialize input_history, unique_pairs and counts
-            AU.input_history{1} = [xSMPrevious xSM];
-            AU.unique_pairs = [xSMPrevious xSM];
-            AU.input_history_counts{1} = 1;
-            AU.unique_pairs_counts = 1;
+            RM.input_history{1} = [xSMPrevious xSM];
+            RM.unique_pairs = [xSMPrevious xSM];
+            RM.input_history_counts{1} = 1;
+            RM.unique_pairs_counts = 1;
         else
             % Do nothing
         end
@@ -143,12 +143,12 @@ iteration = 1;
 SM.input = [];
 SM.inputNext = [];
 anomalyScores = ones(1,data.N);
-AU.access_previous = 0;
-AU.access = [];
-time_per_dataset = datetime;
+RM.access_previous = 0;
+RM.access = [];
+tic;
 
 SM.every_prediction = zeros(data.N,2048);
-AU.time = zeros(1,data.N);
+RM.time = zeros(1,data.N);
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
@@ -171,7 +171,7 @@ while iteration < (data.N + 1)
     end
 
     % Check for the key
-    attention (iteration, trN, learnFlag, displayFlag, automatization_flag, temporal_pooling_flag);
+    attention (iteration, trN, learnFlag, displayFlag, reflex_memory_flag, temporal_pooling_flag);
     
     %% This part of the code is just for display of variables and plots/figures    
     if (displayFlag)
@@ -206,16 +206,10 @@ while iteration < (data.N + 1)
     iteration = iteration + 1;  
 end
 
-htmau_time_notrn = diff([time_per_dataset datetime]);
-fprintf ('\nThe processing Time withoug trainig is: %s\n',htmau_time_notrn);
-save (sprintf('Output/time_SMRM_%s.mat',inFile(strfind(inFile,'/')+1:strfind(inFile,'.')-1)),'htmau_time_notrn');
+sm_r_time_notrn = toc;
+fprintf ('\nThe processing Time withoug trainig is: %s\n',sm_r_time_notrn);
+save (sprintf('Output/time_SMRM_%s.mat',inFile(strfind(inFile,'/')+1:strfind(inFile,'.')-1)),'sm_r_time_notrn');
 
-
-% htmau_no_trn_timing(i) = diff([time_per_dataset datetime]);
-% fprintf ('\nThe processing Time withoug trainig is: %s\n',htmau_no_trn_timing(i));
-% save (sprintf('timimg_no_trn_htmau.mat'),'htmau_no_trn_timing');
-
-%fprintf ('\nProcessing Time is: %s\n',diff([time datetime]));
 fprintf('\n Running input of length %d through sequence memory to detect anomaly...done', data.N);
 
 % Uncomment this if you want to visualize Temporal Pooler output
@@ -225,7 +219,7 @@ fprintf('\n Running input of length %d through sequence memory to detect anomaly
 %% Save data
 if learnFlag
     save (sprintf('Output/HTM_SM_%s.mat', outFile), ...
-        'SM', 'SP', 'AU', 'data', 'anomalyScores', 'predictions',...
+        'SM', 'SP', 'RM', 'data', 'anomalyScores', 'predictions',...
         '-v7.3');
 else
     save (sprintf('Output/HTM_SM_%s_L.mat', outFile), ...

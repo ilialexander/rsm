@@ -20,7 +20,7 @@ function updateSynapses ()
 %
 
 
-global SM AU;
+global SM RM;
 
 % dendrite  - cellID pair
 [dendrite, ~, cellID] = find(SM.dendriteToCell); % note: same cellID might be repeated
@@ -61,10 +61,10 @@ SM.synapsePermanence(strengthenSynapses) = SM.synapsePermanence(strengthenSynaps
 %SM.synapsePermanence(weakenSynapses) = SM.synapsePermanence(weakenSynapses) - SM.P_decr;
 
 
-if AU.access % Allows to update the relevant variables when AU is accessed
+if RM.access % Allows to update the relevant variables when RM is accessed
     SM.cellLearn(:) = 0;
     SM.cellLearn(nonzeros(SM.dendriteToCell(reinforceSynapses))) = 1; % gets only cells which have dendrites
-    SM.cellActive = SM.cellLearn; % Are used for markPredictiveStates after AU.access
+    SM.cellActive = SM.cellLearn; % Are used for markPredictiveStates after RM.access
     SM.cellPredictedPrevious = SM.cellPredicted;
 else
 	%SM.synapsePermanence(weakenSynapses) = SM.synapsePermanence(weakenSynapses) - SM.P_decr;

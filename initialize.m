@@ -15,7 +15,7 @@ function initialize ()
 %
 % on https://github.com/SudeepSarkar/matlabHTM
 
-global  SM SP TP data AU
+global  SM SP TP data RM
 
     %% parameters for spatial pooler
     % according to a paper "Effect of Spatial Pooler Initialization on Column Activity in
@@ -128,14 +128,14 @@ global  SM SP TP data AU
     SM.dendriteActive = sparse (SM.maxDendrites, 1);
     SM.dendriteLearn = sparse (SM.maxDendrites, 1);
     
-    %% parameters for automotization unit   
-    % AU.input_history => cells of arrays, each cell holds an array of a specific key, 
-    % AU.input_history => each row in the array contains a different value for that specific key.
-    AU.input_history = {0}; 
-    AU.input_history_counts = {0}; % Holds the count for all entries in AU.input_history. {similar structure as AU.input_history}
-    AU.unique_pairs = []; % Holds <key, value> pairs with highest counts
-    AU.unique_pairs_counts = []; % Holds count of AU.unique_pairs.
-    AU.access = 0; % flag to grant access to search value of i+1 in AU
+    %% parameters for Reflex Memory   
+    % RM.input_history => cells of arrays, each cell holds an array of a specific key, 
+    % RM.input_history => each row in the array contains a different value for that specific key.
+    RM.input_history = {0}; 
+    RM.input_history_counts = {0}; % Holds the count for all entries in RM.input_history. {similar structure as RM.input_history}
+    RM.unique_pairs = []; % Holds <key, value> pairs with highest counts
+    RM.unique_pairs_counts = []; % Holds count of RM.unique_pairs.
+    RM.access = 0; % flag to grant access to search value of i+1 in RM
    
      %% Setup arrays for Temporal pooler
     
