@@ -1,4 +1,4 @@
-function updateSynapses ()
+function SM = updateSynapses (SM,RM)
 %
 % This function performs Hebbian learning on the HTM array. This is the last phase of an iteration.
 % This update is based on the learnState of a cell.
@@ -19,9 +19,12 @@ function updateSynapses ()
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 %
 
+<<<<<<< HEAD
 
 global SM RM;
 
+=======
+>>>>>>> origin
 % dendrite  - cellID pair
 [dendrite, ~, cellID] = find(SM.dendriteToCell); % note: same cellID might be repeated
 % create a list of synapse-dendrite pairs

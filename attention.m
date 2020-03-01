@@ -8,7 +8,12 @@ function attention (iteration,trN,learnFlag,displayFlag, reflex_memory_flag, tem
 % reflex_memory_flag: invokes the Reflex Memory
 % temporal_pooling_flag: invokes the Temporal Pool
 
+<<<<<<< HEAD
 % Note: The Temporal pooler is not fully implemented if invoked with Reflex Memory
+=======
+% Note: The Temporal pooler is not fully implemented if invoked with the
+% Reflex Memory
+>>>>>>> origin
 
 %% Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA
 % This work is licensed under the Attribution-NonCommercial-ShareAlike 4.0 International License.
@@ -22,6 +27,7 @@ function attention (iteration,trN,learnFlag,displayFlag, reflex_memory_flag, tem
 global SM TP RM data anomalyScores
 
 % Invokes RM
+<<<<<<< HEAD
 if reflex_memory_flag
     %tic;
     index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:(size(SM.input,2)))),2);
@@ -35,6 +41,23 @@ end
 % RM.column_location is non-zero when it finds a key in the RM.unique_pairs (this key corresponds to a first-order-sequence pair)
 
 if RM.column_location & (iteration>trN) & (iteration<data.N)
+=======
+
+% time_rm = datetime;
+
+if reflex_memory_flag
+    %tic;
+    RM.col_loc_index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:(size(SM.input,2)))),2);
+    %col_loc_toc = toc; 
+else
+    RM.col_loc_index = 0;
+end
+
+% (iteration>trN) prevents the RM from predicting on training data because it was built with this data in the Spatial Pooler training
+% any(RM.col_loc_index) is non-zero when it holds a key in the RM.unique_pairs (this key corresponds to a first-order-sequence pair)
+
+if any(RM.col_loc_index) & (iteration>trN) & (iteration<data.N)
+>>>>>>> origin
     %% Get the next input to validate RM prediction.
     x = [];
     for  i=1:length(data.fields)
@@ -46,7 +69,11 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
     data.inputSDR = [data.inputSDR; SM.inputNext];
     
     % Compare RM prediction with next input
+<<<<<<< HEAD
     RM.access = isequal(RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2)), SM.inputNext);
+=======
+    RM.access = isequal(RM.unique_pairs(RM.col_loc_index,(size(SM.input,2)+1):size(RM.unique_pairs,2)), SM.inputNext);
+>>>>>>> origin
     if RM.access
         if anomalyScores (iteration) == 0
             % Prevents overriding the score calculated in the RM
@@ -59,27 +86,39 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
         if RM.access_previous == 1
             % Sequence memory already learned in previous iteration
         else
-			sequenceMemory (true,learnFlag,false);
+			SM = sequenceMemory (SM, RM, true,learnFlag,false);
         end
         anomalyScores (iteration+1) = 0;
+<<<<<<< HEAD
         SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2));
 
         %% RM
         %tic;
         reflex_memory ();
+=======
+        SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.col_loc_index,(size(SM.input,2)+1):size(RM.unique_pairs,2));
+
+        %% RM
+        %tic;
+        RM = reflex_memory (SM,RM);
+>>>>>>> origin
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearn(:) = 0;
         SM.cellLearn(:,SM.inputNext) = 1;
-        updateSynapses();
+        SM = updateSynapses (SM,RM);
         %rm_toc = toc;
         %RM.time(iteration+1) = rm_toc+col_loc_toc;
         RM.access = 0;
+<<<<<<< HEAD
         RM.access_previous = 1; % flag to ensure propper SM-RM Sync        
+=======
+        RM.access_previous = 1; % flag to ensure propper HTM-RM Sync        
+>>>>>>> origin
     else % if RM is not accessed
         if RM.access_previous == 1
             % Prevents overriding the score calculated in the RM
             % Only used to predict next state
-            sequenceMemory (false,false,true);
+            SM = sequenceMemory (SM, RM, false,false,true);
         else
 			%% Compute anomaly score 
 			% based on what was predicted as the next expected sequence memory
@@ -91,12 +130,20 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
             %% Run the input through Sequence Memory (SM) module to compute the active
             % cells in SM and also the predictions for the next time instant.
             %tic;
+<<<<<<< HEAD
             sequenceMemory (true,learnFlag,true);
+=======
+            SM = sequenceMemory (SM, RM, true,learnFlag,true);
+>>>>>>> origin
             %RM.time(iteration) = toc;
 			
             if reflex_memory_flag
                 %% RM
+<<<<<<< HEAD
                 reflex_memory ();
+=======
+                RM = reflex_memory (SM,RM);
+>>>>>>> origin
             end
 			
             %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
@@ -106,13 +153,17 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
                 TP.unionSDRhistory (mod(iteration-1, size(TP.unionSDRhistory, 1))+1, :) =  TP.unionSDR;
             end
         end
+<<<<<<< HEAD
         RM.access_previous = 0; % flag to ensure propper SM-RM Sync
+=======
+        RM.access_previous = 0; % flag to ensure propper HTM-RM Sync
+>>>>>>> origin
     end
 else
     if RM.access_previous == 1
         % Prevents overriding the score calculated in the RM
         % Predict next state
-        sequenceMemory (false,false,true);
+        SM = sequenceMemory (SM, RM, false,false,true);
     else
         %% Compute anomaly score 
         % based on what was predicted as the next expected sequence memory
@@ -128,7 +179,11 @@ else
         %% Run the input through Sequence Memory (SM) module to compute the active
         % cells in SM and also the predictions for the next time instant.
         %tic;
+<<<<<<< HEAD
         sequenceMemory (true,learnFlag,true);
+=======
+        SM = sequenceMemory (SM, RM, true,learnFlag,true);
+>>>>>>> origin
         %RM.time(iteration) = toc;
 
         
@@ -142,8 +197,15 @@ else
         % Skips training data
         if reflex_memory_flag && (iteration > trN) && (iteration<data.N)
             %% RM
+<<<<<<< HEAD
             reflex_memory ();
         end
     end
     RM.access_previous = 0; % flag to ensure propper SM-RM Sync
+=======
+            RM = reflex_memory (SM,RM);
+        end
+    end
+    RM.access_previous = 0; % flag to ensure propper HTM-RM Sync
+>>>>>>> origin
 end

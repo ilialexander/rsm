@@ -54,6 +54,7 @@ if learnFlag
 
         % train the Reflex Memory (RM)
         if reflex_memory_flag && (iteration > 2)
+<<<<<<< HEAD
             index=all(bsxfun(@eq,xSMPrevious,RM.unique_pairs(:,1:size(xSMPrevious,2))),2);
             RM.column_location = find(index,1,'last');
             if RM.column_location
@@ -73,6 +74,25 @@ if learnFlag
                     % Add value and initialize count (1) to existing key
                     RM.input_history{1,RM.column_location} = [RM.input_history{1,RM.column_location}; xSMPrevious xSM];
                     RM.input_history_counts{1,RM.column_location} = [RM.input_history_counts{1,RM.column_location}; 1];
+=======
+            RM.col_loc_index=all(bsxfun(@eq,xSMPrevious,RM.unique_pairs(:,1:size(xSMPrevious,2))),2);
+            if any(RM.col_loc_index)
+                RM.row_loc_index=all(bsxfun(@eq,xSM,RM.input_history{1,RM.col_loc_index}(:,(size(xSM,2)+1):size(RM.unique_pairs,2))),2);
+                if any(RM.row_loc_index)
+                    % Increase count of existing <key, value> pair
+                    RM.input_history_counts{1,RM.col_loc_index}(RM.row_loc_index) = RM.input_history_counts{1,RM.col_loc_index}(RM.row_loc_index) + 1;
+					% Check the key column for the value with maximum count
+                    if RM.input_history_counts{1,RM.col_loc_index}(RM.row_loc_index) > RM.unique_pairs_counts(RM.col_loc_index)
+                        % Update unique_pairs_counts for that key
+                        RM.unique_pairs_counts(RM.col_loc_index) = RM.input_history_counts{1,RM.col_loc_index}(RM.row_loc_index);
+                        % Update unique_pairs with max count
+                        RM.unique_pairs(RM.col_loc_index,:) = [xSMPrevious xSM];
+                    end
+                else
+                    % Add value and initialize count (1) to existing key
+                    RM.input_history{1,RM.col_loc_index} = [RM.input_history{1,RM.col_loc_index}; xSMPrevious xSM];
+                    RM.input_history_counts{1,RM.col_loc_index} = [RM.input_history_counts{1,RM.col_loc_index}; 1];
+>>>>>>> origin
                 end
             else
                % Add new key and value to input_history and unique_pairs
@@ -145,7 +165,11 @@ SM.inputNext = [];
 anomalyScores = ones(1,data.N);
 RM.access_previous = 0;
 RM.access = [];
+<<<<<<< HEAD
 tic;
+=======
+time_per_dataset = datetime;
+>>>>>>> origin
 
 SM.every_prediction = zeros(data.N,2048);
 RM.time = zeros(1,data.N);
@@ -206,10 +230,23 @@ while iteration < (data.N + 1)
     iteration = iteration + 1;  
 end
 
+<<<<<<< HEAD
 sm_r_time_notrn = toc;
 fprintf ('\nThe processing Time withoug trainig is: %s\n',sm_r_time_notrn);
 save (sprintf('Output/time_SMRM_%s.mat',inFile(strfind(inFile,'/')+1:strfind(inFile,'.')-1)),'sm_r_time_notrn');
 
+=======
+htmRM_time_notrn = diff([time_per_dataset datetime]);
+fprintf ('\nThe processing Time withoug trainig is: %s\n',htmRM_time_notrn);
+save (sprintf('Output/time_SMRM_%s.mat',inFile(strfind(inFile,'/')+1:strfind(inFile,'.')-1)),'htmRM_time_notrn');
+
+
+% htmRM_no_trn_timing(i) = diff([time_per_dataset datetime]);
+% fprintf ('\nThe processing Time withoug trainig is: %s\n',htmRM_no_trn_timing(i));
+% save (sprintf('timimg_no_trn_htmRM.mat'),'htmRM_no_trn_timing');
+
+%fprintf ('\nProcessing Time is: %s\n',diff([time datetime]));
+>>>>>>> origin
 fprintf('\n Running input of length %d through sequence memory to detect anomaly...done', data.N);
 
 % Uncomment this if you want to visualize Temporal Pooler output
