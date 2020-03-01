@@ -1,4 +1,4 @@
-function SM = markActiveStates (SM)
+function markActiveStates ()
 % Given the input (SM.input), this function (i) computes the active cells in the sequence memory array,
 % basically, all predicted cell in an active column (column with 1 as input) is active.
 % and all cells in an active column with no predicted cells are active; (ii) marks the appropriate outputs
@@ -32,6 +32,7 @@ function SM = markActiveStates (SM)
 %   2.  Otherwise, turn on any predicted cells in every active column
 %   3.  If no predicted cells in a column, turn on every cell in the column"
 
+global SM
 
 %% Find index (row and col) of the predicted cells, i.e. cells in polarized state as stored in the
 % 2D sparse array SM.CellPredicted. Note the lengths of the rowPredicted and colPredicted

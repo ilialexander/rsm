@@ -1,4 +1,4 @@
-function SM = markPredictiveStates (SM)
+function markPredictiveStates ()
 % The calculates the predictive state for each cell. A cell will turn on its predictive state
 % output if one of its segments becomes active, i.e. if enough of its lateral inputs are currently active due
 % to feed-forward input. In this case, the cell queues up the following changes: reinforcement of the
@@ -22,6 +22,8 @@ function SM = markPredictiveStates (SM)
 %
 % Note --- the underlying synapse/dendrite/cell pointer-based data structure is oriented in the following way
 % Cell body affecting (input) <-- synapse --> dendrites???--> cell body affected (output)
+
+global SM
 
 SM.SynapseActive = []; %(:) = 0; % synapses that have permanences above a threshold
 SM.SynapsePositive = []; %(:) = 0; % synapses that have positive permanences 

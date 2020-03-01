@@ -1,4 +1,4 @@
-function SM = markLearnStates (SM)
+function markLearnStates ()
 % Update the learn states of the cells (one per ACTIVE columns). This is to be run after the active states
 % have been updated (compute_active_states). For those ACTIVE COLUMNS, this code further selects ONE cell
 % per column as the learning cell (learnState). The logic is as follows. If an active cell has a segment that
@@ -25,6 +25,8 @@ function SM = markLearnStates (SM)
 % This program is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+global SM
 
 SM.cellLearn (:) = 0;
 activeCols = find(SM.input);
@@ -80,7 +82,7 @@ for k=1:n
     % find the row indices (row_i) of active cells in column j
     i = row_i(ismember (col_i, j)); % Could be more than 1 -- i can be a vector
     
-    [cellChosen, newSynapsesToDendrite, updateFlag] = getBestMatchingCell (SM, j, i);
+    [cellChosen, newSynapsesToDendrite, updateFlag] = getBestMatchingCell (j, i);
 
     % if the column is shared between two time instant, use the location
     % chosen earlier.
@@ -98,11 +100,11 @@ for k=1:n
     end
 end
 
-SM = addDendrites (SM, dCells, expandDendrites, nDCells);
+addDendrites (dCells, expandDendrites, nDCells);
 
 end
 %%
-function [chosenCell, addNewSynapsesToDendrite, updateFlag]  = getBestMatchingCell (SM, j, i)
+function [chosenCell, addNewSynapsesToDendrite, updateFlag]  = getBestMatchingCell (j, i)
 % i could be a vector - is the list of active cells (could be bursting) in the column, j.
 %
 % getBestMatchingCell - For the given column, return the cell with the best matching segment (as defined below).
@@ -120,6 +122,7 @@ function [chosenCell, addNewSynapsesToDendrite, updateFlag]  = getBestMatchingCe
 % can have bursting column with or without any dendrities, e.g. at the start of a new
 % sequence, randomly choose one -- this will also be an anchor for a new dendrite.
 
+global SM
 
 cellIndex = sub2ind([SM.M SM.N], i, j*ones(size(i))); % can be a vector
 dendrites = ismember (SM.dendriteToCell, cellIndex);

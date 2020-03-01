@@ -1,4 +1,4 @@
-function SM = addDendrites (SM, dCells, expandDendrites, nDCells)
+function addDendrites (dCells, expandDendrites, nDCells)
 %% Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA
 % This work is licensed under the Attribution-NonCommercial-ShareAlike 4.0 International License. 
 % To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
@@ -7,6 +7,7 @@ function SM = addDendrites (SM, dCells, expandDendrites, nDCells)
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 %
 
+global SM
 
 sCells = find(SM.cellLearnPrevious); % pointers to previously learned cells
 

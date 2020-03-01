@@ -1,18 +1,20 @@
-function SM = sequenceMemory (SM, RM, mark_active_flag, learnFlag, predict_flag)
+function sequenceMemory (mark_active_flag, learnFlag, predict_flag)
+
+global SM
 
     if mark_active_flag
-        SM = markActiveStates (SM); % based on x and PI_1 (prediction from past cycle)
+        markActiveStates (); % based on x and PI_1 (prediction from past cycle)
     end
     
     if learnFlag
-       SM = markLearnStates (SM);
-       SM = updateSynapses (SM,RM);
+       markLearnStates ();
+       updateSynapses ();
     end
 
     if predict_flag
         % Predict next state
         SM.cellPredictedPrevious = SM.cellPredicted;   
-        SM = markPredictiveStates (SM);
+        markPredictiveStates ();
     end
    
 end
