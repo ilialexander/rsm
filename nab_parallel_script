@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --partition=bgfsqdr
 #SBATCH --job-name=NAB_SRM_11
-#SBATCH --time=20:00:00
+#SBATCH --time=3:00:00
 #SBATCH --output=Output/matlabHTMRM.%j
+#SBATCH --name=runNAB
 #SBATCH --ntasks=8
-#SBATCH --mem=8192
+#SBATCH --mem=16384
 
 module load apps/matlab/r2019a
 
