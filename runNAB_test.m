@@ -41,5 +41,6 @@ for i=startFile:endFile
     %% Time to process
     sm_r_timing_dataset = toc;
     fprintf ('\nProcessing Time is: %s\n',sm_r_timing_dataset);
-    save (sprintf('Output/time_SMRM_%s.mat',name),'sm_r_timing_dataset','-append');    
+    save (sprintf('Output/time_SMRM_%s.mat',name),'sm_r_timing_dataset','-append');
+    fprintf ('\n%d:iteration_finished_properly,%d\n',i);
 end
