@@ -63,9 +63,9 @@ if learnFlag
                     % Increase count of existing <key, value> pair
                     RM.input_history_counts{1,RM.column_location}(RM.row_location) = RM.input_history_counts{1,RM.column_location}(RM.row_location) + 1;
 					% Check the key column for the value with maximum count
-                    if RM.input_history_counts{1,RM.column_location}(RM.row_location) > RM.unique_pairs_counts(RM.column_location,1)
+                    if RM.input_history_counts{1,RM.column_location}(RM.row_location) > RM.unique_pairs_counts(RM.column_location)
                         % Update unique_pairs_counts for that key
-                        RM.unique_pairs_counts(RM.column_location,:) = [RM.input_history_counts{1,RM.column_location}(RM.row_location) RM.row_location];
+                        RM.unique_pairs_counts(RM.column_location) = RM.input_history_counts{1,RM.column_location}(RM.row_location);
                         % Update unique_pairs with max count
                         RM.unique_pairs(RM.column_location,:) = [xSMPrevious xSM];
                     end
@@ -80,14 +80,14 @@ if learnFlag
                RM.unique_pairs = [RM.unique_pairs; xSMPrevious xSM];
                % Initialize counts
                RM.input_history_counts{1,size(RM.input_history_counts,2)+1} = 1;
-               RM.unique_pairs_counts = [RM.unique_pairs_counts; 1 1];
+               RM.unique_pairs_counts = [RM.unique_pairs_counts; 1];
             end
         elseif reflex_memory_flag && iteration == 2
             % Initialize input_history, unique_pairs and counts
             RM.input_history{1} = [xSMPrevious xSM];
             RM.unique_pairs = [xSMPrevious xSM];
             RM.input_history_counts{1} = 1;
-            RM.unique_pairs_counts = [1 1];
+            RM.unique_pairs_counts = 1;
         else
             % Do nothing
         end
