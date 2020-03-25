@@ -202,7 +202,7 @@ while iteration < (data.N + 1)
     %%
     SM.cellActivePrevious = SM.cellActive;
     SM.cellLearnPrevious = SM.cellLearn;
-    iteration = iteration + 1;  
+    iteration = iteration + 1;
 end
 
 sm_r_time_notrn = toc;

@@ -73,7 +73,8 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
         %rm_toc = toc;
         %RM.time(iteration+1) = rm_toc+col_loc_toc;
         RM.access = 0;
-        RM.access_previous = 1; % flag to ensure propper SM-RM Sync        
+        RM.access_previous = 1; % flag to ensure propper SM-RM Sync    
+        RM.column_location_prev = RM.column_location;
     else % if RM is not accessed
         if RM.access_previous == 1
             % Prevents overriding the score calculated in the RM
@@ -106,6 +107,7 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
             end
         end
         RM.access_previous = 0; % flag to ensure propper SM-RM Sync
+        RM.column_location_prev = RM.column_location;
     end
 else
     if RM.access_previous == 1
@@ -145,4 +147,5 @@ else
         end
     end
     RM.access_previous = 0; % flag to ensure propper SM-RM Sync
+    RM.column_location_prev = 0;
 end
