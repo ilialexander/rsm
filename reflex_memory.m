@@ -40,23 +40,22 @@ elseif RM.column_location
         RM.input_history_counts{1,RM.column_location} = [RM.input_history_counts{1,RM.column_location}; 1];   
     end
 else
-%     % Create a new cell in RM.input_history and initialize the Counts
-%     RM.input_history{1,size(RM.input_history,2)+1} = [SM.inputPrevious SM.input];
-%     RM.input_history_counts{1,size(RM.input_history_counts,2)+1} = 1;
-%     % Create a new entry in RM.unique_pairs and initialize unique_pairs_counts
-%     RM.unique_pairs = [RM.unique_pairs; SM.inputPrevious SM.input];
-%     RM.unique_pairs_counts = [RM.unique_pairs_counts; 1];
+    %Do Nothing
 end
 
 if ~any(RM.column_location_prev)
-%     index=all(bsxfun(@eq,SM.inputPrevious,RM.unique_pairs(:,1:(size(SM.input,2)))),2);
-%     if size(find(index,1,'last'),1) > 0
-%         fprintf("Ilia, You Suck");
-%     end
-    % Create a new cell in RM.input_history and initialize the Counts
-    RM.input_history{1,size(RM.input_history,2)+1} = SM.input;
-    RM.input_history_counts{1,size(RM.input_history_counts,2)+1} = 1;
-    % Create a new entry in RM.unique_pairs and initialize unique_pairs_counts
-    RM.unique_pairs = [RM.unique_pairs; SM.inputPrevious SM.input];
-    RM.unique_pairs_counts = [RM.unique_pairs_counts; 1];
+    index=all(bsxfun(@eq,SM.inputPrevious,RM.unique_pairs(:,1:(size(SM.input,2)))),2);
+    old_column_location = find(index,1,'last');
+    if old_column_location
+        % Adds <key, value> pair to existing 'key' column and initializes count.
+        RM.input_history{1,old_column_location} = [RM.input_history{1,old_column_location}; SM.input];
+        RM.input_history_counts{1,old_column_location} = [RM.input_history_counts{1,old_column_location}; 1]; 
+    else
+        % Create a new cell in RM.input_history and initialize the Counts
+        RM.input_history{1,size(RM.input_history,2)+1} = SM.input;
+        RM.input_history_counts{1,size(RM.input_history_counts,2)+1} = 1;
+        % Create a new entry in RM.unique_pairs and initialize unique_pairs_counts
+        RM.unique_pairs = [RM.unique_pairs; SM.inputPrevious SM.input];
+        RM.unique_pairs_counts = [RM.unique_pairs_counts; 1];
+    end
 end
