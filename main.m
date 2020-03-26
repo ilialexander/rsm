@@ -57,7 +57,7 @@ if learnFlag
             index=all(bsxfun(@eq,xSMPrevious,RM.unique_pairs(:,1:size(xSMPrevious,2))),2);
             RM.column_location = find(index,1,'last');
             if RM.column_location
-                index=all(bsxfun(@eq,xSM,RM.input_history{1,RM.column_location}(:,(size(xSM,2)+1):size(RM.unique_pairs,2))),2);
+                index=all(bsxfun(@eq,xSM,RM.input_history{1,RM.column_location}(:,1:size(xSM,2))),2);
                 RM.row_location = find(index,1,'last');
                 if RM.row_location
                     % Increase count of existing <key, value> pair
@@ -71,12 +71,12 @@ if learnFlag
                     end
                 else
                     % Add value and initialize count (1) to existing key
-                    RM.input_history{1,RM.column_location} = [RM.input_history{1,RM.column_location}; xSMPrevious xSM];
+                    RM.input_history{1,RM.column_location} = [RM.input_history{1,RM.column_location}; xSM];
                     RM.input_history_counts{1,RM.column_location} = [RM.input_history_counts{1,RM.column_location}; 1];
                 end
             else
                % Add new key and value to input_history and unique_pairs
-               RM.input_history{1,size(RM.input_history,2)+1} = [xSMPrevious xSM];
+               RM.input_history{1,size(RM.input_history,2)+1} = xSM;
                RM.unique_pairs = [RM.unique_pairs; xSMPrevious xSM];
                % Initialize counts
                RM.input_history_counts{1,size(RM.input_history_counts,2)+1} = 1;
@@ -84,7 +84,7 @@ if learnFlag
             end
         elseif reflex_memory_flag && iteration == 2
             % Initialize input_history, unique_pairs and counts
-            RM.input_history{1} = [xSMPrevious xSM];
+            RM.input_history{1} = xSM;
             RM.unique_pairs = [xSMPrevious xSM];
             RM.input_history_counts{1} = 1;
             RM.unique_pairs_counts = 1;
