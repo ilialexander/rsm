@@ -1,4 +1,5 @@
 function bootstrapping (startFile, endFile, displayFlag)
+tic;
 % This function through the entore NAB dataset
 %
 % Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA
@@ -184,5 +185,7 @@ else
     %     fprintf(1, '\n%s', fileNames{i(j)});
     % end
 end
+
+toc;
 
 exit

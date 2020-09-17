@@ -112,7 +112,7 @@ data.shift = [1 1 1 1 width];
 readData = importdata (filename);
 
 %data.N = 100;
-data.N = length(readData)-1;
+data.N = length(readData);
 
 %dateTime = readData.textdata (2:data.N+1, 1);
 
@@ -121,7 +121,7 @@ data.N = length(readData)-1;
 %rawData(:,5) = ((rawData(:,3) == 1) + (rawData(:,3) == 7)) + 1.0; %weekend 
 % energy, month, day of the week, time of day, weekend, seconds (not used)
 %rawData (:, 4) = rawData (:, 4); 
-rawData (:, 1) = readData (2:length(readData),1);
+rawData (:, 1) = readData (1:length(readData),1);
 
 %% Need to check data in numenta for comparison
 %data.labels = readData.data(:,4);
