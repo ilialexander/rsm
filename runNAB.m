@@ -1,4 +1,4 @@
-function runNAB (startFile, endFile, displayFlag, createModelFlag, automatization_flag, temporal_pooling_flag)
+function runNAB (startFile, endFile, displayFlag, createModelFlag, reflex_memory_flag, temporal_pooling_flag)
 % This function through the entore NAB dataset
 %
 % Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA
@@ -30,7 +30,7 @@ for i=startFile:endFile
 
     %% Create Model
     if createModelFlag
-        main  (file_name, name, displayFlag, true, 'none', automatization_flag, temporal_pooling_flag);
+        main  (file_name, name, displayFlag, true, 'none', reflex_memory_flag, temporal_pooling_flag);
     end
     
     %% Time to process

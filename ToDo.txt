@@ -1,9 +1,0 @@
-To Do List for AU and possible improvements
-1. Update AU patterns in batches
-2. Study Temporal Pooler permanence with AU
-3. Save Spatial pooler for optimal case
-
-Proposed Ideas
-1. Checking Anomalies for five entries at a time
-2. Fix permanences of SM
-3. Parallel computation of SM and AU

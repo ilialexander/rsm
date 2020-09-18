@@ -2,7 +2,7 @@ startFile = 1;
 endFile = 1;
 displayFlag = false;
 createModelFlag = true;
-automatization_flag = true;
+reflex_memory_flag = true;
 temporal_pooling_flag = false;
 time = datetime;
 % This function through the entore NAB dataset
@@ -35,7 +35,7 @@ for i=startFile:endFile
 
     %% Create Model
     if createModelFlag
-        main  (file_name, name, displayFlag, true, 'none', automatization_flag, temporal_pooling_flag);
+        main  (file_name, name, displayFlag, true, 'none', reflex_memory_flag, temporal_pooling_flag);
     end
     
     %% Time to process

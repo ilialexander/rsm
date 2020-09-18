@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=runNABAU_1-2
+#SBATCH --job-name=runNABRSM_1-2
 #SBATCH --time=02:00:00
-#SBATCH --output=Output/matlabHTMAU.%j
+#SBATCH --output=Output/matlabRSM.%j
 #SBATCH --ntasks=1
 #SBATCH --mem=8192
 
