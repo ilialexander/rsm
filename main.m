@@ -148,6 +148,8 @@ RM.access = [];
 tic;
 SM.every_prediction = zeros(data.N,2048);
 RM.time = zeros(1,data.N);
+RM.access_count = [1, 0];
+RM.temporal_order = 1;
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    

@@ -57,8 +57,16 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
 
         if RM.access_previous == 1
             % Sequence memory already learned in previous iteration
+            RM.temporal_order = RM.temporal_order + 1;
+            rm_access_count_index = find(RM.access_count (:, 1) == RM.temporal_order);
+            if rm_access_count_index
+                RM.access_count(rm_access_count_index,2) = RM.access_count(rm_access_count_index,2) + 1;
+            else
+                RM.access_count = [RM.access_count; RM.temporal_order 1];
+            end
         else
 			sequenceMemory (true,learnFlag,false);
+            RM.temporal_order = 1;
         end
         anomalyScores (iteration+1) = 0;
         SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2));
@@ -75,6 +83,7 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
         RM.access = 0;
         RM.access_previous = 1; % flag to ensure propper SM-RM Sync    
         RM.column_location_prev = RM.column_location;
+        RM.access_count(1,2) = RM.access_count(1,2) +1;
     else % if RM is not accessed
         if RM.access_previous == 1
             % Prevents overriding the score calculated in the RM
