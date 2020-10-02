@@ -1,4 +1,6 @@
 move RM training to reflex_memory.m
+collect temporal predictin in rsm
+collect search time spent in rsm
 
 To Do List for RM and possible improvements
 1. Update RM patterns in batches

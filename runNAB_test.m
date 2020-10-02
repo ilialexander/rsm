@@ -4,7 +4,6 @@ displayFlag = false;
 createModelFlag = true;
 reflex_memory_flag = true;
 temporal_pooling_flag = false;
-time = datetime;
 % This function through the entore NAB dataset
 %
 % Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA

@@ -108,7 +108,14 @@ data.inputSDR = [];
 RM.access_previous = 0;
 RM.access = [];
 sm_r_time_notrn_starts = tic;
-
+RM.access_count = zeros(1,data.N);
+SM.every_prediction = zeros(data.N,2048);
+RM.access_count = [1, 0];
+RM.temporal_order = 1;
+RM.col_loc_toc = zeros(1,data.N);
+RM.row_loc_toc = zeros(1,data.N);
+RM.predict_toc = zeros(1,data.N);
+RM.learn_toc = zeros(1,data.N);
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    

@@ -22,8 +22,10 @@ global SM TP RM data anomalyScores
 
 % Invokes RM
 if reflex_memory_flag
+    tic;
     index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:SM.N)),2);
     RM.key_pointer = find(index,1,'last');
+    RM.col_loc_toc(iteration) = toc; 
 else
     RM.key_pointer = 0;
 end
@@ -43,7 +45,9 @@ if RM.key_pointer & (iteration>trN) & (iteration<data.N)
     data.inputSDR = [data.inputSDR; SM.inputNext];
     
     % Compare RM prediction with next input
+    tic;
     RM.access = isequal(RM.unique_pairs(RM.key_pointer,(SM.N + 1):end), SM.inputNext);
+    RM.row_loc_toc(iteration) = toc;
     if RM.access
         if anomalyScores (iteration) == 0
             % Prevents overriding the score calculated in the RM
@@ -62,7 +66,9 @@ if RM.key_pointer & (iteration>trN) & (iteration<data.N)
         SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.key_pointer,(SM.N + 1):end);
 
         %% RM
+        tic;
         reflex_memory(iteration, trN, reflex_memory_flag);
+        RM.predict_toc = toc;
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearn(:) = 0;
         SM.cellLearn(:,SM.inputNext) = 1;
