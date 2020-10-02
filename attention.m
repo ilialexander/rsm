@@ -22,10 +22,10 @@ global SM TP RM data anomalyScores
 
 % Invokes RM
 if reflex_memory_flag
-    %tic;
+    tic;
     index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:(size(SM.input,2)))),2);
     RM.column_location = find(index,1,'last');
-    %col_loc_toc = toc; 
+    RM.col_loc_toc(iteration) = toc; 
 else
     RM.column_location = 0;
 end
@@ -45,7 +45,9 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
     data.inputSDR = [data.inputSDR; SM.inputNext];
     
     % Compare RM prediction with next input
+    tic;
     RM.access = isequal(RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2)), SM.inputNext);
+    RM.row_loc_toc(iteration) = toc;
     if RM.access
         if anomalyScores (iteration) == 0
             % Prevents overriding the score calculated in the RM
@@ -72,13 +74,13 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
         SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2));
 
         %% RM
-        %tic;
+        tic;
         reflex_memory ();
+        RM.predict_toc = toc;
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearn(:) = 0;
         SM.cellLearn(:,SM.inputNext) = 1;
         updateSynapses ();
-        %rm_toc = toc;
         %RM.time(iteration+1) = rm_toc+col_loc_toc;
         RM.access = 0;
         RM.access_previous = 1; % flag to ensure propper SM-RM Sync    
@@ -105,7 +107,9 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
 			
             if reflex_memory_flag
                 %% RM
+                tic;
                 reflex_memory ();
+                RM.learn_toc(iteration) = toc;
             end
 			
             %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
@@ -152,7 +156,9 @@ else
         % Skips training data
         if reflex_memory_flag && (iteration > trN) && (iteration<data.N)
             %% RM
+            tic;
             reflex_memory ();
+            RM.learn_toc(iteration) = toc;
         end
     end
     RM.access_previous = 0; % flag to ensure propper SM-RM Sync
