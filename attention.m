@@ -22,15 +22,10 @@ global SM TP RM data anomalyScores
 
 % Invokes RM
 if reflex_memory_flag
-<<<<<<< HEAD
+    tic;
     index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:SM.N)),2);
     RM.column_location = find(index,1,'last');
-=======
-    tic;
-    index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:(size(SM.input,2)))),2);
-    RM.column_location = find(index,1,'last');
     RM.col_loc_toc(iteration) = toc; 
->>>>>>> 641b3a1b13c9c4deb0400edd92ecd164674ab87e
 else
     RM.column_location = 0;
 end
@@ -48,13 +43,9 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
     SM.inputNext = spatialPooler (x, false, displayFlag);
     
     % Compare RM prediction with next input
-<<<<<<< HEAD
-    RM.access = isequal(RM.unique_pairs(RM.column_location,(SM.N + 1):end), SM.inputNext);
-=======
     tic;
-    RM.access = isequal(RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2)), SM.inputNext);
+    RM.access = isequal(RM.unique_pairs(RM.column_location,(SM.N + 1):end), SM.inputNext);
     RM.row_loc_toc(iteration) = toc;
->>>>>>> 641b3a1b13c9c4deb0400edd92ecd164674ab87e
     if RM.access
         if anomalyScores (iteration) == 0
             % Prevents overriding the score calculated in the RM
@@ -66,31 +57,32 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
 
         if RM.access_previous == 1
             % Sequence memory already learned in previous iteration
+            RM.temporal_order = RM.temporal_order + 1;
+            rm_access_count_index = find(RM.access_count (:, 1) == RM.temporal_order);
+            if rm_access_count_index
+                RM.access_count(rm_access_count_index,2) = RM.access_count(rm_access_count_index,2) + 1;
+            else
+                RM.access_count = [RM.access_count; RM.temporal_order 1];
+            end
         else
 			sequenceMemory (true,learnFlag,false);
+            RM.temporal_order = 1;
         end
         anomalyScores (iteration+1) = 0;
         SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.column_location,(SM.N + 1):end);
 
         %% RM
-<<<<<<< HEAD
-=======
         tic;
->>>>>>> 641b3a1b13c9c4deb0400edd92ecd164674ab87e
         reflex_memory ();
         RM.predict_toc = toc;
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearn(:) = 0;
         SM.cellLearn(:,SM.inputNext) = 1;
         updateSynapses ();
-<<<<<<< HEAD
-=======
-        %RM.time(iteration+1) = rm_toc+col_loc_toc;
->>>>>>> 641b3a1b13c9c4deb0400edd92ecd164674ab87e
         RM.access = 0;
         RM.access_previous = 1; % flag to ensure propper SM-RM Sync    
         RM.column_location_prev = RM.column_location;
-        RM.access_count(iteration) = 1;
+        RM.access_count(1,2) = RM.access_count(1,2) +1;
     else % if RM is not accessed
         if RM.access_previous == 1
             % Prevents overriding the score calculated in the RM
