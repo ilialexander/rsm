@@ -128,11 +128,13 @@ global  SM SP TP data RM
     SM.dendriteActive = sparse (SM.maxDendrites, 1);
     SM.dendriteLearn = sparse (SM.maxDendrites, 1);
     
-    %% parameters for Reflex Memory   
+    %% parameters for Reflex Memory
+    RM.N = SM.N;
+    RM.Nn = 4096;
     % RM.input_history => cells of arrays, each cell holds an array of a specific key, 
     % RM.input_history => each row in the array contains a different value for that specific key.
-    RM.input_history = {0}; 
-    RM.input_history_counts = {0}; % Holds the count for all entries in RM.input_history. {similar structure as RM.input_history}
+    RM.input_history = {}; 
+    RM.input_history_counts = {}; % Holds the count for all entries in RM.input_history. {similar structure as RM.input_history}
     RM.unique_pairs = []; % Holds <key, value> pairs with highest counts
     RM.unique_pairs_counts = []; % Holds count of RM.unique_pairs.
     RM.access = 0; % flag to grant access to search value of i+1 in RM

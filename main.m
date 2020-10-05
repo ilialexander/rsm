@@ -54,10 +54,10 @@ if learnFlag
 
         % train the Reflex Memory (RM)
         if reflex_memory_flag && (iteration > 2)
-            index=all(bsxfun(@eq,xSMPrevious,RM.unique_pairs(:,1:size(xSMPrevious,2))),2);
+            index=all(bsxfun(@eq,xSMPrevious,RM.unique_pairs(:,1:SM.N)),2);
             RM.column_location = find(index,1,'last');
             if RM.column_location
-                index=all(bsxfun(@eq,xSM,RM.input_history{1,RM.column_location}(:,1:size(xSM,2))),2);
+                index=all(bsxfun(@eq,xSM,RM.input_history{1,RM.column_location}(:,1:SM.N)),2);
                 RM.row_location = find(index,1,'last');
                 if RM.row_location
                     % Increase count of existing <key, value> pair
@@ -71,16 +71,16 @@ if learnFlag
                     end
                 else
                     % Add value and initialize count (1) to existing key
-                    RM.input_history{1,RM.column_location} = [RM.input_history{1,RM.column_location}; xSM];
-                    RM.input_history_counts{1,RM.column_location} = [RM.input_history_counts{1,RM.column_location}; 1];
+                    RM.input_history{1,RM.column_location}(end + 1,:) = xSM;
+                    RM.input_history_counts{1,RM.column_location}(end + 1,:) = 1;
                 end
             else
                % Add new key and value to input_history and unique_pairs
-               RM.input_history{1,size(RM.input_history,2)+1} = xSM;
-               RM.unique_pairs = [RM.unique_pairs; xSMPrevious xSM];
+               RM.input_history{1,end + 1} = xSM;
+               RM.unique_pairs(end + 1,:) = [xSMPrevious xSM];
                % Initialize counts
-               RM.input_history_counts{1,size(RM.input_history_counts,2)+1} = 1;
-               RM.unique_pairs_counts = [RM.unique_pairs_counts; 1];
+               RM.input_history_counts{1,end + 1} = 1;
+               RM.unique_pairs_counts(end + 1) = 1;
             end
         elseif reflex_memory_flag && iteration == 2
             % Initialize input_history, unique_pairs and counts
@@ -112,7 +112,7 @@ else
 end
 
 % Initialize plot areas
-close all; 
+close all;
 if displayFlag
    % h1 = figure; set(h1, 'Position', [10, 10000, 700, 1000]);
    % h2 = figure; set(h2, 'Position', [1000, 10000, 700, 1000]);
@@ -127,8 +127,6 @@ end
 %% Setup arrays
 predictions = zeros(3, data.N); % initialize array allocaton -- faster on matlab
 SM.inputPrevious = zeros(1,SM.N);
-data.inputCodes = [];
-data.inputSDR = [];
 SP.boost = ones (SM.N, 1); 
 % no boosting in spatial pooler as it is being run in a non-learning mode
 % next
@@ -137,19 +135,16 @@ SP.boost = ones (SM.N, 1);
 fprintf('\n Running input of length %d through attention to detect anomaly...', data.N);
 
 %% Iterate through the input data and feed through the spatial pooler, sequence memory and temporal pooler, as needed.
-
-%time = datetime;   % Used to calculate the execution time.
 iteration = 1;
 SM.input = [];
 SM.inputNext = [];
 anomalyScores = ones(1,data.N);
 RM.access_previous = 0;
 RM.access = [];
+RM.access_count = zeros(1,data.N);
 tic;
 SM.every_prediction = zeros(data.N,2048);
 RM.time = zeros(1,data.N);
-RM.access_count = [1, 0];
-RM.temporal_order = 1;
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
@@ -163,9 +158,6 @@ while iteration < (data.N + 1)
         end
         
         SM.input = spatialPooler (x, false, displayFlag);
-
-        data.inputCodes = [data.inputCodes; x]; 
-        data.inputSDR = [data.inputSDR; SM.input];
 
         % stores sequence of input to spatial pooler. This is used to
         % visualize the predicted vectors 

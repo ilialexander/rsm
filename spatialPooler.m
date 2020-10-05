@@ -13,7 +13,12 @@ function active = spatialPooler (encodedInput, learnP, displayFlag)
 global  SM SP
 
 % flip row vector input into column vector, if needed.
-if size(encodedInput, 1) == 1, encodedInput = encodedInput'; end
+if size(encodedInput, 1) == 1
+    encodedInput = encodedInput';
+else
+    fprintf("size(encodedInput, 1) was different than one");
+    exit;
+end
 
 
 %% compute overlap

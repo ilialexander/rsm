@@ -22,10 +22,8 @@ global SM TP RM data anomalyScores
 
 % Invokes RM
 if reflex_memory_flag
-    %tic;
-    index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:(size(SM.input,2)))),2);
+    index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:SM.N)),2);
     RM.column_location = find(index,1,'last');
-    %col_loc_toc = toc; 
 else
     RM.column_location = 0;
 end
@@ -41,11 +39,9 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
         x = [x data.code{j}(data.value{j}(iteration+1),:)];
     end
     SM.inputNext = spatialPooler (x, false, displayFlag);
-    data.inputCodes = [data.inputCodes; x]; 
-    data.inputSDR = [data.inputSDR; SM.inputNext];
     
     % Compare RM prediction with next input
-    RM.access = isequal(RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2)), SM.inputNext);
+    RM.access = isequal(RM.unique_pairs(RM.column_location,(SM.N + 1):end), SM.inputNext);
     if RM.access
         if anomalyScores (iteration) == 0
             % Prevents overriding the score calculated in the RM
@@ -57,33 +53,22 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
 
         if RM.access_previous == 1
             % Sequence memory already learned in previous iteration
-            RM.temporal_order = RM.temporal_order + 1;
-            rm_access_count_index = find(RM.access_count (:, 1) == RM.temporal_order);
-            if rm_access_count_index
-                RM.access_count(rm_access_count_index,2) = RM.access_count(rm_access_count_index,2) + 1;
-            else
-                RM.access_count = [RM.access_count; RM.temporal_order 1];
-            end
         else
 			sequenceMemory (true,learnFlag,false);
-            RM.temporal_order = 1;
         end
         anomalyScores (iteration+1) = 0;
-        SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.column_location,(size(SM.input,2)+1):size(RM.unique_pairs,2));
+        SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.column_location,(SM.N + 1):end);
 
         %% RM
-        %tic;
         reflex_memory ();
         SM.cellActivePrevious = SM.cellActive;
         SM.cellLearn(:) = 0;
         SM.cellLearn(:,SM.inputNext) = 1;
         updateSynapses ();
-        %rm_toc = toc;
-        %RM.time(iteration+1) = rm_toc+col_loc_toc;
         RM.access = 0;
         RM.access_previous = 1; % flag to ensure propper SM-RM Sync    
         RM.column_location_prev = RM.column_location;
-        RM.access_count(1,2) = RM.access_count(1,2) +1;
+        RM.access_count(iteration) = 1;
     else % if RM is not accessed
         if RM.access_previous == 1
             % Prevents overriding the score calculated in the RM
@@ -99,9 +84,7 @@ if RM.column_location & (iteration>trN) & (iteration<data.N)
 
             %% Run the input through Sequence Memory (SM) module to compute the active
             % cells in SM and also the predictions for the next time instant.
-            %tic;
             sequenceMemory (true,learnFlag,true);
-            %RM.time(iteration) = toc;
 			
             if reflex_memory_flag
                 %% RM
@@ -137,10 +120,7 @@ else
 
         %% Run the input through Sequence Memory (SM) module to compute the active
         % cells in SM and also the predictions for the next time instant.
-        %tic;
         sequenceMemory (true,learnFlag,true);
-        %RM.time(iteration) = toc;
-
         
         %% Temporal Pooling (TP) -- remove comments below to invoke temporal pooling.
         if temporal_pooling_flag && (iteration > trN)
