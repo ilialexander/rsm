@@ -59,8 +59,16 @@ if RM.key_pointer & (iteration>trN) & (iteration<data.N)
 
         if RM.access_previous == 1
             % Sequence memory already learned in previous iteration
+            RM.temporal_order = RM.temporal_order + 1;
+            rm_access_count_index = find(RM.access_count (:, 1) == RM.temporal_order);
+            if rm_access_count_index
+                RM.access_count(rm_access_count_index,2) = RM.access_count(rm_access_count_index,2) + 1;
+            else
+                RM.access_count = [RM.access_count; RM.temporal_order 1];
+            end
         else
 			sequenceMemory (true,learnFlag,false);
+            RM.temporal_order = 1;
         end
         anomalyScores (iteration+1) = 0;
         SM.every_prediction(iteration+1,:) = RM.unique_pairs(RM.key_pointer,(SM.N + 1):end);
@@ -76,6 +84,7 @@ if RM.key_pointer & (iteration>trN) & (iteration<data.N)
         RM.access = 0;
         RM.access_previous = 1; % flag to ensure propper SM-RM Sync    
         RM.key_pointer_prev = RM.key_pointer;
+        RM.access_count(1,2) = RM.access_count(1,2) +1;
     else % if RM is not accessed
         pre_sm(iteration, trN, learnFlag, temporal_pooling_flag, reflex_memory_flag);
     end
