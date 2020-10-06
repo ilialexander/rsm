@@ -145,16 +145,12 @@ RM.access_count = zeros(1,data.N);
 tic;
 SM.every_prediction = zeros(data.N,2048);
 RM.time = zeros(1,data.N);
-<<<<<<< HEAD
-=======
 RM.access_count = [1, 0];
 RM.temporal_order = 1;
 RM.col_loc_toc = zeros(1,data.N);
 RM.row_loc_toc = zeros(1,data.N);
 RM.predict_toc = zeros(1,data.N);
 RM.learn_toc = zeros(1,data.N);
-
->>>>>>> 641b3a1b13c9c4deb0400edd92ecd164674ab87e
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
