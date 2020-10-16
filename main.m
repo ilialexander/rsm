@@ -39,7 +39,8 @@ if learnFlag
     trN = min (750, round(0.15*data.N));
     % use the first 15 percent of the data (upto a maximum of 750) samples for training the spatial pooler. 
     
-    xSMPrevious = [];
+    SM.inputPrevious = [];
+    RM.access = [];
     iteration = 1;
     while iteration < trN
         % [ToDo: Move this to a function called 'SPOutput']
@@ -50,58 +51,21 @@ if learnFlag
         end
         
         % train the spatialPooler
-        xSM = spatialPooler (x, true, false);
+        SM.input = spatialPooler (x, true, false);
 
         % train the Reflex Memory (RM)
-        if reflex_memory_flag && (iteration > 2)
-            index=all(bsxfun(@eq,xSMPrevious,RM.unique_pairs(:,1:SM.N)),2);
-            RM.column_location = find(index,1,'last');
-            if RM.column_location
-                index=all(bsxfun(@eq,xSM,RM.input_history{1,RM.column_location}(:,1:SM.N)),2);
-                RM.row_location = find(index,1,'last');
-                if RM.row_location
-                    % Increase count of existing <key, value> pair
-                    RM.input_history_counts{1,RM.column_location}(RM.row_location) = RM.input_history_counts{1,RM.column_location}(RM.row_location) + 1;
-					% Check the key column for the value with maximum count
-                    if RM.input_history_counts{1,RM.column_location}(RM.row_location) > RM.unique_pairs_counts(RM.column_location)
-                        % Update unique_pairs_counts for that key
-                        RM.unique_pairs_counts(RM.column_location) = RM.input_history_counts{1,RM.column_location}(RM.row_location);
-                        % Update unique_pairs with max count
-                        RM.unique_pairs(RM.column_location,:) = [xSMPrevious xSM];
-                    end
-                else
-                    % Add value and initialize count (1) to existing key
-                    RM.input_history{1,RM.column_location}(end + 1,:) = xSM;
-                    RM.input_history_counts{1,RM.column_location}(end + 1,:) = 1;
-                end
-            else
-               % Add new key and value to input_history and unique_pairs
-               RM.input_history{1,end + 1} = xSM;
-               RM.unique_pairs(end + 1,:) = [xSMPrevious xSM];
-               % Initialize counts
-               RM.input_history_counts{1,end + 1} = 1;
-               RM.unique_pairs_counts(end + 1) = 1;
-            end
-        elseif reflex_memory_flag && iteration == 2
-            % Initialize input_history, unique_pairs and counts
-            RM.input_history{1} = xSM;
-            RM.unique_pairs = [xSMPrevious xSM];
-            RM.input_history_counts{1} = 1;
-            RM.unique_pairs_counts = 1;
-        else
-            % Do nothing
-        end
+        reflex_memory(iteration, trN, reflex_memory_flag);
         
         %Can we reconstruct the input by inverting the process? This is
         %just for sanity check. It is NOT used for training the spatial
         %pooler
-        ri = (xSM* double(SP.synapse > SP.connectPerm)) > 1;
+        ri = (SM.input* double(SP.synapse > SP.connectPerm)) > 1;
         rError = nnz(x(1:data.nBits(1))) - nnz(ri(1:data.nBits(1)) & x(1:data.nBits(1)));
         if (rError ~= 0)
             fprintf(1, '\n (Non zero reconstruction error: %d bits) - ignore.', rError);
         end
         
-        xSMPrevious = xSM;
+        SM.inputPrevious = SM.input;
         iteration = iteration + 1;
     end
     fprintf(1, '\n Learning sparse distributed representations using spatial pooling...done.');
@@ -141,10 +105,8 @@ SM.inputNext = [];
 anomalyScores = ones(1,data.N);
 RM.access_previous = 0;
 RM.access = [];
-RM.access_count = zeros(1,data.N);
-tic;
-SM.every_prediction = zeros(data.N,2048);
-RM.time = zeros(1,data.N);
+sm_r_time_notrn_starts = tic;
+
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
@@ -199,8 +161,8 @@ while iteration < (data.N + 1)
     iteration = iteration + 1;
 end
 
-sm_r_time_notrn = toc;
-fprintf ('\nThe processing Time withoug trainig is: %s\n',sm_r_time_notrn);
+sm_r_time_notrn = toc(sm_r_time_notrn_starts);
+fprintf ('\nThe processing Time without trainig is: %s\n',sm_r_time_notrn);
 save (sprintf('Output/time_SMRM_%s.mat',inFile(strfind(inFile,'/')+1:strfind(inFile,'.')-1)),'sm_r_time_notrn');
 
 fprintf('\n Running input of length %d through sequence memory to detect anomaly...done', data.N);

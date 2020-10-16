@@ -30,7 +30,7 @@ for i=startFile:endFile
     close all;
     clear global;
 
-    tic;
+    sm_r_timing_dataset_start = tic;
     [~, name, ~] = fileparts(file_name);
 
     %% Create Model
@@ -39,7 +39,7 @@ for i=startFile:endFile
     end
     
     %% Time to process
-    sm_r_timing_dataset = toc;
+    sm_r_timing_dataset = toc(sm_r_timing_dataset_start);
     fprintf ('\nProcessing Time is: %s\n',sm_r_timing_dataset);
     save (sprintf('Output/time_SMRM_%s.mat',name),'sm_r_timing_dataset','-append');
     fprintf ('\n%d:iteration_finished_properly,%d\n',i);
