@@ -13,8 +13,6 @@ if displayFlag
     figure; h1 = gcf; 
 end
 
-
-%% Sequences are being done in parallel now
 for i=startFile:endFile
     
     fid = fopen('fileList.txt', 'r');
@@ -25,7 +23,7 @@ for i=startFile:endFile
     close all;
     clear global;
 
-    tic;
+    timing_starts = tic;
     [~, name, ~] = fileparts(file_name);
 
     %% Create Model
@@ -34,10 +32,9 @@ for i=startFile:endFile
     end
     
     %% Time to process
-    sm_r_timing_dataset = toc;
+    sm_r_timing_dataset = toc(timing_starts);
     fprintf ('\nProcessing Time is: %s\n',sm_r_timing_dataset);
     save (sprintf('Output/time_SMRM_%s.mat',name),'sm_r_timing_dataset','-append');
     fprintf ('\n%d:iteration_finished_properly,%d\n',i);    
 end
-
 exit

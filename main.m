@@ -103,6 +103,8 @@ iteration = 1;
 SM.input = [];
 SM.inputNext = [];
 anomalyScores = ones(1,data.N);
+data.inputCodes = [];
+data.inputSDR = [];
 RM.access_previous = 0;
 RM.access = [];
 sm_r_time_notrn_starts = tic;
@@ -120,6 +122,8 @@ while iteration < (data.N + 1)
         end
         
         SM.input = spatialPooler (x, false, displayFlag);
+        data.inputCodes = [data.inputCodes; x]; 
+        data.inputSDR = [data.inputSDR; SM.inputNext];
 
         % stores sequence of input to spatial pooler. This is used to
         % visualize the predicted vectors 
@@ -155,7 +159,6 @@ while iteration < (data.N + 1)
     SM.inputPrevious = SM.input;
     SM.input = SM.inputNext;
     SM.inputNext = [];
-    %%
     SM.cellActivePrevious = SM.cellActive;
     SM.cellLearnPrevious = SM.cellLearn;
     iteration = iteration + 1;

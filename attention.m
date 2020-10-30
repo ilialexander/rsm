@@ -39,6 +39,8 @@ if RM.key_pointer & (iteration>trN) & (iteration<data.N)
         x = [x data.code{j}(data.value{j}(iteration+1),:)];
     end
     SM.inputNext = spatialPooler (x, false, displayFlag);
+    data.inputCodes = [data.inputCodes; x]; 
+    data.inputSDR = [data.inputSDR; SM.inputNext];
     
     % Compare RM prediction with next input
     RM.access = isequal(RM.unique_pairs(RM.key_pointer,(SM.N + 1):end), SM.inputNext);
