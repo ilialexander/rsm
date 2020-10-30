@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH --partition=bgfsqdr
 #SBATCH --job-name=runNABRSM_1-2
 #SBATCH --time=02:00:00
 #SBATCH --output=Output/matlabRSM.%j

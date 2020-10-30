@@ -1,5 +1,4 @@
 function bootstrapping (startFile, endFile, displayFlag)
-tic;
 % This function through the entore NAB dataset
 %
 % Copyright (c) 2016,  Sudeep Sarkar, University of South Florida, Tampa, USA
@@ -47,7 +46,16 @@ randomScore = zeros (60, 30);
 numenta_GT = zeros (60, 30);
 numenta_Our = zeros (60, 30);
 
-fid = fopen('fileList.txt', 'r');
+S_A_trials = {};
+numenta_GT_trials = {};
+numenta_Our_trials = {};
+randomScore_trials = {};
+perfectScore_trials = {};
+nullScore_trials = {};
+
+load (sprintf('Output/rsm_anomaly_scores.mat'));
+
+fid = fopen('benchmarks.txt', 'r');
 i = 1;
 while ~feof(fid)
     fscanf(fid, '%d ', 1); % skip the line count in the first column
@@ -57,8 +65,6 @@ end
 fclose (fid);
 fprintf(1, '\n %d files to process in total', i);
 close all;
-
-
 
 for i=startFile:endFile
 
@@ -122,9 +128,6 @@ for i=startFile:endFile
    
 end
 
-
-%% [ToDo: place bootstrapping in another file]
-
 if fileNames{i}(1:strfind(fileNames{i},'/')-1) == "Pseudo_periodic_synthetic"
    
 else
@@ -186,6 +189,16 @@ else
     % end
 end
 
-toc;
+S_A_trials{end + 1} = S_A;
+numenta_GT_trials{end + 1} = numenta_GT;
+numenta_Our_trials{end + 1} = numenta_Our;
+randomScore_trials{end + 1} = randomScore;
+perfectScore_trials{end + 1} = perfectScore;
+nullScore_trials{end + 1} = nullScore;
+if (endFile == 58) && ~(isequal(S_A_trials{end},S_A_trials{end - 1}))
+    save (sprintf('Output/rsm_anomaly_scores.mat'), 'S_A_trials', 'numenta_GT_trials',...
+        'numenta_Our_trials','randomScore_trials', 'perfectScore_trials',...
+        'nullScore_trials');
+end
 
-exit
+%exit

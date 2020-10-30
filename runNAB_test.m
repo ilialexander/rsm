@@ -21,7 +21,6 @@ end
 
 %% Sequences are being done in parallel now
 for i=startFile:endFile
-    
     fid = fopen('fileList.txt', 'r');
     file_name = textscan(fid,'%*n %s',1,'delimiter','\n', 'headerlines',i-1);
     file_name = cell2mat(file_name{1});
