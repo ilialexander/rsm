@@ -18,7 +18,6 @@ if displayFlag
     figure; h1 = gcf; 
 end
 
-
 %% Sequences are being done in parallel now
 for i=startFile:endFile
     fid = fopen('fileList.txt', 'r');
