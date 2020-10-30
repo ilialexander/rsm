@@ -42,6 +42,17 @@ if learnFlag
     SM.inputPrevious = [];
     RM.access = [];
     iteration = 1;
+    RM.key_search = zeros(1,data.N);
+    RM.key_write = zeros(1,data.N);
+    RM.kv_write = zeros(1,data.N);
+
+    RM.val_match = zeros(1,data.N);
+    RM.val_search = zeros(1,data.N);
+    RM.val_write = zeros(1,data.N);
+    
+    RM.prev_val_search = zeros(1,data.N);
+    RM.prev_val_write = zeros(1,data.N);
+    RM.prev_kv_write = zeros(1,data.N);
     while iteration < trN
         % [ToDo: Move this to a function called 'SPOutput']
         x = []; % construct the binary vector x for each measurement from the data fields
@@ -112,10 +123,6 @@ RM.access_count = zeros(1,data.N);
 SM.every_prediction = zeros(data.N,2048);
 RM.access_count = [1, 0];
 RM.temporal_order = 1;
-RM.col_loc_toc = zeros(1,data.N);
-RM.row_loc_toc = zeros(1,data.N);
-RM.predict_toc = zeros(1,data.N);
-RM.learn_toc = zeros(1,data.N);
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    

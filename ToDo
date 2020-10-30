@@ -1,16 +1,3 @@
-operations to time
-reflex_memory.m
-- search history lines 17-18, 25-26, and 47-48
-- write history lines 39, 51 and 55
-- write rm lines 35, 58 (35 and 58 write 80 addresses <key,value>)
-attention.m
-- search rm lines 26-27 <key>, 47 <value>
-main.m
-- will try to move rm training to relex_memory.m
-
-
-attention.m
-read 
 collect temporal prediction in rsm
 collect search time spent in rsm
 search time (history and rm)
