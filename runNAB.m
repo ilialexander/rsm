@@ -23,9 +23,9 @@ for i=startFile:endFile
     close all;
     clear global;
 
-    timing_starts = tic;
     [~, name, ~] = fileparts(file_name);
 
+    timing_starts = tic;
     %% Create Model
     if createModelFlag
         main  (file_name, name, displayFlag, true, 'none', reflex_memory_flag, temporal_pooling_flag);
