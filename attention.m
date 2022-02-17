@@ -22,6 +22,7 @@ global SM TP RM data anomalyScores
 
 % Invokes RM
 if reflex_memory_flag
+    key_time_tic = tic;
     index=all(bsxfun(@eq,SM.input,RM.unique_pairs(:,1:SM.N)),2);
     RM.key_pointer = find(index,1,'last');
 else
@@ -32,6 +33,7 @@ end
 % RM.key_pointer is non-zero when it finds a key in the RM.unique_pairs (this key corresponds to a first-order-sequence pair)
 
 if RM.key_pointer & (iteration>trN) & (iteration<data.N)
+    RM.key_time(iteration) = toc(key_time_tic);
     %% Get the next input to validate RM prediction.
     x = [];
     for  i=1:length(data.fields)
@@ -43,8 +45,10 @@ if RM.key_pointer & (iteration>trN) & (iteration<data.N)
     data.inputSDR = [data.inputSDR; SM.inputNext];
     
     % Compare RM prediction with next input
+    value_time_tic = tic;
     RM.access = isequal(RM.unique_pairs(RM.key_pointer,(SM.N + 1):end), SM.inputNext);
     if RM.access
+        RM.value_time(iteration) = toc(value_time_tic);
         if anomalyScores (iteration) == 0
             % Prevents overriding the score calculated in the RM
         else

@@ -108,7 +108,8 @@ data.inputSDR = [];
 RM.access_previous = 0;
 RM.access = [];
 sm_r_time_notrn_starts = tic;
-
+RM.key_time = zeros(1,data.N);
+RM.value_time = zeros(1,data.N);
 
 while iteration < (data.N + 1)
     %% Run through Spatial Pooler (SP)(without learning)    
@@ -164,9 +165,12 @@ while iteration < (data.N + 1)
     iteration = iteration + 1;
 end
 
+key_time = RM.key_time;
+value_time = RM.value_time;
 sm_r_time_notrn = toc(sm_r_time_notrn_starts);
 fprintf ('\nThe processing Time without trainig is: %s\n',sm_r_time_notrn);
-save (sprintf('Output/time_SMRM_%s.mat',inFile(strfind(inFile,'/')+1:strfind(inFile,'.')-1)),'sm_r_time_notrn');
+save (sprintf('Output/time_SMRM_%s.mat',inFile(strfind(inFile,'/')+1:strfind(inFile,'.')-1)),'sm_r_time_notrn',...
+    'key_time','value_time');
 
 fprintf('\n Running input of length %d through sequence memory to detect anomaly...done', data.N);
 
